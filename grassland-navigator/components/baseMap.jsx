@@ -1,25 +1,32 @@
 "use client";
 import { MapContainer, TileLayer } from "react-leaflet";
+import CustomZoomControl from "./CustomZoomControl";
 import "leaflet/dist/leaflet.css";
 
-const GIBS_URL =
-  "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/{layer}/default/{time}/{tileMatrixSet}/{z}/{y}/{x}.jpg";
-
 export default function BaseMap() {
-  const today = new Date().toISOString().split("T")[0];
   return (
     <MapContainer
       center={[53.3, -8.0]} // Ireland
       zoom={7}
-      style={{ height: "100vh", width: "100vw" }}
+      style={{ height: "100%", width: "100%" }}
+      zoomControl={false}
     >
+      {/* OpenStreetMap Base Layer */}
       <TileLayer
-        url={GIBS_URL
-          .replace("{layer}", "MODIS_Terra_CorrectedReflectance_TrueColor")
-          .replace("{time}", today)
-          .replace("{tileMatrixSet}", "GoogleMapsCompatible_Level9")}
-        attribution='Imagery © NASA GIBS'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        maxZoom={19}
       />
+      
+      {/* Satellite Layer */}
+      <TileLayer
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        maxZoom={19}
+        opacity={0.8}
+      />
+      
+      <CustomZoomControl />
     </MapContainer>
   );
 }
