@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "serverless/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "serverless/api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/serverless/index.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/serverless/api/health.js"
+    },
+    {
+      "src": "/api/ndvi-anomaly",
+      "dest": "/serverless/api/ndvi-anomaly.js"
+    },
+    {
+      "src": "/api/smap-moisture",
+      "dest": "/serverless/api/smap-moisture.js"
+    },
+    {
+      "src": "/api/firms-fires",
+      "dest": "/serverless/api/firms-fires.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
