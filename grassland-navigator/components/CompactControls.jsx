@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
+import { useMap } from "react-leaflet";
 
 export default function CompactControls({ onLayerToggle }) {
   const [expandedPanel, setExpandedPanel] = useState(null);

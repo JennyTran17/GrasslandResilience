@@ -1,5 +1,6 @@
 "use client";
 import { useMap } from "react-leaflet";
+import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
 
 export default function CustomZoomControl() {
   const map = useMap();

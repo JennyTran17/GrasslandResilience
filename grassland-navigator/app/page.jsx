@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import SidePanel from "@/components/SidePanel";
+import Legend from "@/components/Legend";
 import CompactControls from "@/components/CompactControls";
 
-const BaseMap = dynamic(() => import("@/components/baseMap"), { ssr: false });
+const MapWrapper = dynamic(() => import("@/components/MapWrapper"), { ssr: false });
 
 export default function Home() {
   const { userId, error } = useAuth();
@@ -19,14 +20,23 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* 🧭 Header */}
       <Header />
-      
-      <div className="flex-1 flex overflow-hidden">
-        {/* Map Container */}
-        <div className="flex-1 relative overflow-hidden">
-          <BaseMap />
+
+      {/* 🌍 Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Map Section */}
+        <div className="relative flex-1 overflow-hidden">
+          <MapWrapper onLayerToggle={handleLayerToggle} />
+
+          {/* Overlay Controls */}
           <CompactControls onLayerToggle={handleLayerToggle} />
-          
+
+          {/* 🗺 Legend (ensure it's visible above the map) */}
+          <div className="absolute bottom-4 left-4 z-[1000]">
+            <Legend />
+          </div>
+
           {/* Status Bar */}
           <div className="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-lg z-[1000]">
             <div className="flex items-center space-x-3 text-sm">
@@ -41,9 +51,11 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
+
         {/* Side Panel */}
-        <SidePanel />
+        <div className="w-80 border-l">
+          <SidePanel />
+        </div>
       </div>
     </div>
   );

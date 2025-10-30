@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
 
 export default function MapControls() {
   const [activeView, setActiveView] = useState("satellite");
