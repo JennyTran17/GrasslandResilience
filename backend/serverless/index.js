@@ -14,12 +14,14 @@ export default async function handler(req, res) {
     documentation: 'https://github.com/your-repo/grassland-resilience',
     endpoints: {
       'GET /api/health': 'API health check and status',
-      'GET /api/ndvi-anomaly': 'NDVI Anomaly tile URL from Google Earth Engine',
+      'GET /api/ndvi-anomaly': 'NDVI Anomaly tile configuration (proxied tile URL)',
+      'GET /api/ndvi-tiles?z={z}&x={x}&y={y}': 'NDVI tile proxy - fetches tiles from Google Earth Engine',
       'GET /api/smap-moisture': 'SMAP Soil Moisture data configuration',
       'GET /api/firms-fires': 'FIRMS Active Fire detection data'
     },
     usage: {
-      example: `${req.headers.host}/api/health`
+      example: `${req.headers.host}/api/health`,
+      tileExample: `${req.headers.host}/api/ndvi-tiles?z=8&x=123&y=87`
     },
     status: 'operational'
   };

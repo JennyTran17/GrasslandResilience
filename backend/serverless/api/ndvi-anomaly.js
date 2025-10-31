@@ -6,13 +6,6 @@
  * This endpoint serves as a proxy to Earth Engine tiles
  */
 
-// CORS headers for cross-origin requests
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export default async function handler(req, res) {
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -25,11 +18,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // NDVI Anomaly Tile URL from GEE (Script 4 output)
-    // NOTE: This URL may need to be regenerated periodically
-    // TODO: Implement dynamic URL generation via GEE Python API for production
-    
-    const tileUrl = 'https://earthengine.googleapis.com/v1/projects/noble-anvil-476021-m6/maps/d8c8bccf7700be3946a9508dd6fd6ba6-a4019955c2462bfca51bbeab4d2fd1b3/tiles/{z}/{x}/{y}';
+    // Get the base URL from the request (for production vs development)
+    const protocol = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const baseUrl = `${protocol}://${host}`;
+
+    // NDVI Anomaly Tile URL - now proxied through our backend
+    // Frontend will call: /api/ndvi-tiles?z={z}&x={x}&y={y}
+    // This prevents direct access to Google Earth Engine
+    const tileUrl = `${baseUrl}/api/ndvi-tiles?z={z}&x={x}&y={y}`;
 
     // Return the tile configuration
     const response = {

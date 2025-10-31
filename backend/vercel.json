@@ -24,6 +24,10 @@
       "dest": "/serverless/api/ndvi-anomaly.js"
     },
     {
+      "src": "/api/ndvi-tiles",
+      "dest": "/serverless/api/ndvi-tiles.js"
+    },
+    {
       "src": "/api/smap-moisture",
       "dest": "/serverless/api/smap-moisture.js"
     },

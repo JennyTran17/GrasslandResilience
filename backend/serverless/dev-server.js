@@ -32,6 +32,7 @@ const wrapHandler = (handlerPromise) => async (req, res) => {
 // Define routes matching Vercel's serverless function structure
 app.get('/api/health', wrapHandler(loadHandler('./api/health.js')));
 app.get('/api/ndvi-anomaly', wrapHandler(loadHandler('./api/ndvi-anomaly.js')));
+app.get('/api/ndvi-tiles', wrapHandler(loadHandler('./api/ndvi-tiles.js')));
 
 // SMAP and FIRMS endpoints support both GET and POST
 const smapHandler = wrapHandler(loadHandler('./api/smap-moisture.js'));
@@ -49,6 +50,7 @@ app.get('/', (req, res) => {
     endpoints: [
       'GET /api/health',
       'GET /api/ndvi-anomaly',
+      'GET /api/ndvi-tiles',
       'GET|POST /api/smap-moisture',
       'GET|POST /api/firms-fires'
     ]
@@ -62,7 +64,8 @@ app.get('/api', (req, res) => {
     version: '1.0.0',
     endpoints: [
       'GET /api/health - API health check',
-      'GET /api/ndvi-anomaly - NDVI Anomaly tile URL',
+      'GET /api/ndvi-anomaly - NDVI Anomaly tile URL (proxied)',
+      'GET /api/ndvi-tiles?z={z}&x={x}&y={y} - NDVI tile proxy',
       'GET|POST /api/smap-moisture - SMAP Soil Moisture data',
       'GET|POST /api/firms-fires - FIRMS Active Fire data'
     ]
@@ -75,7 +78,8 @@ app.listen(PORT, () => {
   console.log(`📡 API endpoints available at http://localhost:${PORT}/api/`);
   console.log('\nAvailable endpoints:');
   console.log('  GET  /api/health');
-  console.log('  POST /api/ndvi-anomaly');
-  console.log('  POST /api/smap-moisture');
-  console.log('  POST /api/firms-fires');
+  console.log('  GET  /api/ndvi-anomaly');
+  console.log('  GET  /api/ndvi-tiles?z={z}&x={x}&y={y}');
+  console.log('  GET|POST /api/smap-moisture');
+  console.log('  GET|POST /api/firms-fires');
 });
