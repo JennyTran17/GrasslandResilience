@@ -1,14 +1,28 @@
 "use client";
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import { MapContainer, TileLayer, WMSTileLayer, CircleMarker, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-export default function BaseMapInner() {
+// Map control component to expose map methods
+function MapController({ onMapReady }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (map && onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
+  
+  return null;
+}
+
+const BaseMapInner = forwardRef(function BaseMapInner(props, ref) {
   const [ndvi, setNdvi] = useState(null);
   const [smap, setSmap] = useState(null);
   const [fires, setFires] = useState([]);
+  const [mapInstance, setMapInstance] = useState(null);
 
 useEffect(() => {
   async function loadData() {
@@ -44,6 +58,18 @@ useEffect(() => {
     fetchData();
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    flyTo: (center, zoom, bounds) => {
+      if (mapInstance) {
+        if (bounds) {
+          mapInstance.fitBounds(bounds, { padding: [20, 20] });
+        } else {
+          mapInstance.flyTo(center, zoom, { duration: 1.5 });
+        }
+      }
+    }
+  }), [mapInstance]);
+
   return (
     <MapContainer
       center={[53.3, -8.0]} // Ireland
@@ -51,6 +77,7 @@ useEffect(() => {
       style={{ height: "100%", width: "100%" }}
       zoomControl={true}
     >
+      <MapController onMapReady={setMapInstance} />
       {/* 🗺 Base Map */}
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -108,4 +135,6 @@ useEffect(() => {
         })}
     </MapContainer>
   );
-}
+});
+
+export default BaseMapInner;

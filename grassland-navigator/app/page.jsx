@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRef } from "react";
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import SidePanel from "@/components/SidePanel";
@@ -10,12 +11,19 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), { ssr: false
 
 export default function Home() {
   const { userId, error } = useAuth();
+  const mapRef = useRef();
 
   if (error) return <p className="text-red-600 p-4">{error}</p>;
   if (!userId) return <p className="p-4">Authenticating...</p>;
 
   const handleLayerToggle = (layerKey, isVisible) => {
     console.log(`Layer ${layerKey} toggled:`, isVisible);
+  };
+  
+  const handleAreaSelect = (region) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo(region.center, region.zoom, region.bounds);
+    }
   };
 
   return (
@@ -27,10 +35,10 @@ export default function Home() {
       <div className="flex flex-1 overflow-hidden">
         {/* Map Section */}
         <div className="relative flex-1 overflow-hidden">
-          <MapWrapper onLayerToggle={handleLayerToggle} />
+          <MapWrapper ref={mapRef} onLayerToggle={handleLayerToggle} />
 
           {/* Overlay Controls */}
-          <CompactControls onLayerToggle={handleLayerToggle} />
+          <CompactControls onLayerToggle={handleLayerToggle} onAreaSelect={handleAreaSelect} />
 
           {/* 🗺 Legend (ensure it's visible above the map) */}
           <div className="absolute bottom-4 left-4 z-[1000]">

@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
 import { useMap } from "react-leaflet";
+import GeographicAreaSelector from "./GeographicAreaSelector";
 
-export default function CompactControls({ onLayerToggle }) {
+export default function CompactControls({ onLayerToggle, onAreaSelect }) {
   const [expandedPanel, setExpandedPanel] = useState(null);
   const [layers, setLayers] = useState({
     ndvi: true,
@@ -24,6 +25,12 @@ export default function CompactControls({ onLayerToggle }) {
 
   return (
     <div className="absolute top-4 left-20 z-[1000] flex space-x-2">
+      {/* Geographic Area Selector */}
+      <GeographicAreaSelector
+        onAreaSelect={onAreaSelect}
+        isExpanded={expandedPanel === 'areas'}
+        onToggle={() => togglePanel('areas')}
+      />
       {/* Data Layers Button */}
       <div className="relative">
         <button
