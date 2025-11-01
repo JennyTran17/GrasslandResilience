@@ -34,6 +34,10 @@
     {
       "src": "/api/firms-fires",
       "dest": "/serverless/api/firms-fires.js"
+    },
+    {
+      "src": "/api/temporal-data",
+      "dest": "/serverless/api/temporal-data.js"
     }
   ],
   "env": {

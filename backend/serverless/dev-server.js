@@ -43,6 +43,11 @@ const firmsHandler = wrapHandler(loadHandler('./api/firms-fires.js'));
 app.get('/api/firms-fires', firmsHandler);
 app.post('/api/firms-fires', firmsHandler);
 
+// Temporal data endpoint supports both GET and POST
+const temporalHandler = wrapHandler(loadHandler('./api/temporal-data.js'));
+app.get('/api/temporal-data', temporalHandler);
+app.post('/api/temporal-data', temporalHandler);
+
 // Root route
 app.get('/', (req, res) => {
   res.json({
@@ -52,7 +57,8 @@ app.get('/', (req, res) => {
       'GET /api/ndvi-anomaly',
       'GET /api/ndvi-tiles',
       'GET|POST /api/smap-moisture',
-      'GET|POST /api/firms-fires'
+      'GET|POST /api/firms-fires',
+      'GET|POST /api/temporal-data'
     ]
   });
 });
@@ -67,7 +73,8 @@ app.get('/api', (req, res) => {
       'GET /api/ndvi-anomaly - NDVI Anomaly tile URL (proxied)',
       'GET /api/ndvi-tiles?z={z}&x={x}&y={y} - NDVI tile proxy',
       'GET|POST /api/smap-moisture - SMAP Soil Moisture data',
-      'GET|POST /api/firms-fires - FIRMS Active Fire data'
+      'GET|POST /api/firms-fires - FIRMS Active Fire data',
+      'GET|POST /api/temporal-data?lat={lat}&lng={lng} - Time series data for clicked location'
     ]
   });
 });
@@ -82,4 +89,5 @@ app.listen(PORT, () => {
   console.log('  GET  /api/ndvi-tiles?z={z}&x={x}&y={y}');
   console.log('  GET|POST /api/smap-moisture');
   console.log('  GET|POST /api/firms-fires');
+  console.log('  GET|POST /api/temporal-data?lat={lat}&lng={lng}');
 });
