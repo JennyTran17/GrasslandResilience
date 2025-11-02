@@ -63,32 +63,45 @@ export default async function handler(req, res) {
     // Construct the GEE tile URL
     const tileUrl = `${GEE_TILE_BASE_URL}/${zoom}/${col}/${row}`;
 
-    // Fetch the tile from Google Earth Engine
+    // Fetch the tile from Google Earth Engine with proper headers
     const response = await fetch(tileUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Grassland-Resilience-Navigator/1.0'
-      }
+        'User-Agent': 'Grassland-Resilience-Navigator/1.0',
+        'Accept': 'image/png,image/jpeg,image/*',
+        'Referer': 'https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app'
+      },
+      timeout: 10000
     });
 
     // Check if the request was successful
     if (!response.ok) {
       console.error(`GEE tile fetch failed: ${response.status} ${response.statusText}`);
-      return res.status(response.status).json({
-        error: 'Failed to fetch tile from Earth Engine',
-        status: response.status,
-        statusText: response.statusText
-      });
+      console.error(`Tile URL: ${tileUrl}`);
+      
+      // Return a transparent tile if GEE fails
+      const transparentPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(200).send(transparentPng);
     }
 
     // Get the tile image as a buffer
     const imageBuffer = await response.buffer();
     const contentType = response.headers.get('content-type') || 'image/png';
+    
+    // Debug: Log tile info
+    console.log(`Tile fetched: ${zoom}/${col}/${row}, Size: ${imageBuffer.length} bytes, Type: ${contentType}`);
+    
+    // Check if it's a valid image (not an error response)
+    if (imageBuffer.length < 100) {
+      console.warn('Suspiciously small tile response, may be an error');
+    }
 
     // Set appropriate headers
     res.setHeader('Content-Type', contentType);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour only
 
     // Return the tile image
     return res.status(200).send(imageBuffer);

@@ -4,19 +4,15 @@ import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
 import { useMap } from "react-leaflet";
 import GeographicAreaSelector from "./GeographicAreaSelector";
 
-export default function CompactControls({ onLayerToggle, onAreaSelect }) {
+export default function CompactControls({ layerStates, onLayerToggle, onOpacityChange, onAreaSelect }) {
   const [expandedPanel, setExpandedPanel] = useState(null);
-  const [layers, setLayers] = useState({
-    ndvi: true,
-    soilMoisture: true,
-    riskLevel: true,
-    precipitation: false,
-  });
 
   const handleToggle = (layerKey) => {
-    const newLayers = { ...layers, [layerKey]: !layers[layerKey] };
-    setLayers(newLayers);
-    onLayerToggle?.(layerKey, newLayers[layerKey]);
+    onLayerToggle?.(layerKey);
+  };
+
+  const handleOpacityChange = (layerKey, opacity) => {
+    onOpacityChange?.(layerKey, opacity);
   };
 
   const togglePanel = (panel) => {
@@ -43,29 +39,47 @@ export default function CompactControls({ onLayerToggle, onAreaSelect }) {
         </button>
         
         {expandedPanel === 'layers' && (
-          <div className="absolute top-12 left-0 bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg shadow-xl p-4 min-w-[240px] z-[1100]">
-            <div className="space-y-3">
+          <div className="absolute top-12 left-0 bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg shadow-xl p-4 min-w-[280px] z-[1100]">
+            <div className="space-y-4">
               {[
-                { key: 'ndvi', label: 'NDVI Anomaly', desc: 'Vegetation Index', color: 'emerald' },
-                { key: 'soilMoisture', label: 'Soil Moisture', desc: 'SMAP Satellite', color: 'blue' },
+                { key: 'ndvi', label: 'NDVI Anomaly', desc: 'Vegetation Index', color: 'blue' },
+                { key: 'soilMoisture', label: 'Soil Moisture', desc: 'SMAP Satellite', color: 'emerald' },
                 { key: 'riskLevel', label: 'Risk Assessment', desc: 'Composite Index', color: 'amber' },
                 { key: 'precipitation', label: 'Precipitation', desc: 'GPM Satellite', color: 'indigo' }
               ].map((layer) => (
-                <label key={layer.key} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={layers[layer.key]}
-                      onChange={() => handleToggle(layer.key)}
-                      className={`w-4 h-4 text-${layer.color}-600 bg-white border-slate-300 rounded focus:ring-2 focus:ring-${layer.color}-500`}
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-slate-800">{layer.label}</div>
-                      <div className="text-xs text-slate-500">{layer.desc}</div>
+                <div key={layer.key} className="p-3 rounded-lg border border-slate-100 hover:bg-slate-50">
+                  <label className="flex items-center justify-between cursor-pointer mb-2">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={layerStates?.[layer.key]?.visible ?? (layer.key === 'ndvi' || layer.key === 'soilMoisture')}
+                        onChange={() => handleToggle(layer.key)}
+                        className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      <div>
+                        <div className="text-sm font-medium text-slate-800">{layer.label}</div>
+                        <div className="text-xs text-slate-500">{layer.desc}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className={`w-3 h-3 bg-${layer.color}-500 rounded-sm`}></div>
-                </label>
+                    <div className={`w-3 h-3 bg-${layer.color}-500 rounded-sm`}></div>
+                  </label>
+                  {(layerStates?.[layer.key]?.visible ?? (layer.key === 'ndvi' || layer.key === 'soilMoisture')) && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
+                        <span>Opacity</span>
+                        <span>{Math.round((layerStates?.[layer.key]?.opacity || (layer.key === 'ndvi' ? 0.7 : 0.5)) * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        value={Math.round((layerStates?.[layer.key]?.opacity || (layer.key === 'ndvi' ? 0.7 : 0.5)) * 100)}
+                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
+                        onChange={(e) => handleOpacityChange(layer.key, parseInt(e.target.value))}
+                      />
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

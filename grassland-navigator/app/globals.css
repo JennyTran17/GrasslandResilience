@@ -156,3 +156,21 @@ html, body, #__next {
 .leaflet-tile {
   filter: contrast(1.1) brightness(1.05);
 }
+
+/* Layer overlays with distinct colors */
+.ndvi-overlay {
+  filter: hue-rotate(60deg) saturate(2.5) contrast(1.8) brightness(0.8) !important;
+}
+
+.smap-overlay {
+  filter: hue-rotate(240deg) saturate(2.5) contrast(1.8) brightness(0.8) !important;
+  mix-blend-mode: overlay !important;
+}
+
+.risk-overlay {
+  filter: hue-rotate(60deg) saturate(2.2) contrast(1.6) brightness(0.9) !important;
+}
+
+.precip-overlay {
+  filter: hue-rotate(280deg) saturate(2.8) contrast(1.9) brightness(0.7) !important;
+}
