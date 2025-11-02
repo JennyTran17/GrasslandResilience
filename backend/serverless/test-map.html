@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDVI Anomaly Test - Grassland Resilience Navigator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #map {
+            height: 70vh;
+            width: 100%;
+        }
+        .info-panel {
+            padding: 20px;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+        }
+        .info-panel h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 300px;
+        }
+        .legend h4 {
+            margin: 0 0 10px 0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-panel">
+        <h1>🌍 NDVI Anomaly Test - Grassland Resilience Navigator</h1>
+        <div id="status" class="status loading">Loading API endpoint...</div>
+        <div id="metadata"></div>
+    </div>
+    
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000'; // Change to your Vercel URL after deployment
+        
+        // Initialize map
+        const map = L.map('map').setView([53.5, -8.0], 7); // Centered on Ireland
+
+        // Add base layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Status element
+        const statusEl = document.getElementById('status');
+        const metadataEl = document.getElementById('metadata');
+
+        // Fetch NDVI Anomaly data
+        async function loadNDVIAnomaly() {
+            try {
+                statusEl.className = 'status loading';
+                statusEl.textContent = 'Fetching NDVI Anomaly data...';
+
+                const response = await fetch(`${API_BASE_URL}/api/ndvi-anomaly`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Add NDVI Anomaly tile layer
+                    L.tileLayer(data.data.tileUrl, {
+                        attribution: 'NOAA VIIRS | GEE',
+                        opacity: 0.7,
+                        maxZoom: 18
+                    }).addTo(map);
+
+                    // Update status
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ NDVI Anomaly layer loaded successfully!';
+
+                    // Display metadata
+                    const meta = data.data.metadata;
+                    metadataEl.innerHTML = `
+                        <p><strong>Region:</strong> ${meta.region}</p>
+                        <p><strong>Climatology Period:</strong> ${meta.climatologyPeriod}</p>
+                        <p><strong>Current Date:</strong> ${meta.currentDate}</p>
+                        <p><strong>Source:</strong> ${meta.source} (${meta.resolution})</p>
+                    `;
+
+                    // Add legend
+                    addLegend(data.data.legend);
+
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                console.error('Error loading NDVI anomaly:', error);
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ Error: ${error.message}`;
+                metadataEl.innerHTML = `
+                    <p style="color: red;">
+                        <strong>Troubleshooting:</strong><br>
+                        - Is the API server running? (Try: <code>vercel dev</code>)<br>
+                        - Check console for CORS errors<br>
+                        - Verify API_BASE_URL is correct
+                    </p>
+                `;
+            }
+        }
+
+        // Add legend to map
+        function addLegend(legendData) {
+            const legend = L.control({ position: 'bottomright' });
+
+            legend.onAdd = function() {
+                const div = L.DomUtil.create('div', 'legend');
+                div.innerHTML = '<h4>NDVI Anomaly</h4>';
+
+                const colors = {
+                    'Dark Red': 'darkred',
+                    'Red/Orange': 'red',
+                    'Yellow': 'yellow',
+                    'White': 'white',
+                    'Light Blue': 'lightblue',
+                    'Blue': 'blue',
+                    'Dark Blue': 'darkblue'
+                };
+
+                for (const [label, description] of Object.entries(legendData)) {
+                    const color = colors[label] || 'gray';
+                    div.innerHTML += `
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: ${color};"></div>
+                            <span style="font-size: 12px;">${label}: ${description}</span>
+                        </div>
+                    `;
+                }
+
+                return div;
+            };
+
+            legend.addTo(map);
+        }
+
+        // Load data on page load
+        loadNDVIAnomaly();
+    </script>
+</body>
+</html>
