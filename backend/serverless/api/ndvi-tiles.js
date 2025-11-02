@@ -16,7 +16,10 @@ const corsHeaders = {
 };
 
 // Base GEE tile URL (without {z}/{x}/{y})
-const GEE_TILE_BASE_URL = 'https://earthengine.googleapis.com/v1/projects/noble-anvil-476021-m6/maps/d8c8bccf7700be3946a9508dd6fd6ba6-a4019955c2462bfca51bbeab4d2fd1b3/tiles';
+// NOTE: This URL expires periodically and needs to be regenerated from GEE
+// TODO: Implement GEE Python API for dynamic tile URL generation
+// Last updated: 2025-01-01
+const GEE_TILE_BASE_URL = 'https://earthengine.googleapis.com/v1/projects/noble-anvil-476021-m6/maps/8f7b360c66580a2b154a28a5b1ed2bf9-2078067a71b694cb945fea68564b61b3/tiles';
 
 export default async function handler(req, res) {
   // Handle preflight OPTIONS request
