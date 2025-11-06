@@ -135,28 +135,40 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
         attribution='&copy; OpenStreetMap contributors'
       />
 
-      {/* NDVI Anomaly Layer - Real GEE Tiles */}
+      {/* NDVI Anomaly Layer - Real Backend GEE Data */}
       {ndvi?.tileUrl && layerStates?.ndvi?.visible && (
         <TileLayer
-          key={`ndvi-${layerStates.ndvi.opacity}`}
+          key={`ndvi-real-${layerStates.ndvi.opacity}`}
           url={ndvi.tileUrl}
-          attribution="NDVI Anomaly (NASA VIIRS)"
+          attribution="NDVI Anomaly (NASA VIIRS) - Real Data"
           opacity={layerStates.ndvi.opacity}
           maxZoom={15}
           errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
         />
       )}
 
-      {/* SMAP Soil Moisture Layer */}
+      {/* SMAP Soil Moisture Layer - Backend Data Priority */}
       {layerStates?.soilMoisture?.visible && (
-        <TileLayer
-          key={`smap-${layerStates.soilMoisture.opacity}`}
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="SMAP Soil Moisture (NASA)"
-          opacity={layerStates.soilMoisture.opacity}
-          maxZoom={15}
-          className="smap-overlay"
-        />
+        <>
+          {smap?.tileUrl ? (
+            <TileLayer
+              key={`smap-real-${layerStates.soilMoisture.opacity}`}
+              url={smap.tileUrl}
+              attribution="SMAP Soil Moisture (NASA) - Real Data"
+              opacity={layerStates.soilMoisture.opacity}
+              maxZoom={15}
+            />
+          ) : (
+            <TileLayer
+              key={`smap-fallback-${layerStates.soilMoisture.opacity}`}
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="SMAP Soil Moisture (NASA) - Visualization"
+              opacity={layerStates.soilMoisture.opacity}
+              maxZoom={15}
+              className="smap-overlay"
+            />
+          )}
+        </>
       )}
 
       {/* Risk Assessment Layer */}
@@ -183,7 +195,7 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
         />
       )}
 
-      {/*FIRMS Active Fires */}
+      {/* FIRMS Active Fires - Real Backend Data */}
       {fires && Array.isArray(fires) && fires.length > 0 &&
         fires.map((f, i) => {
           if (!f.geometry || !f.geometry.coordinates) return null;
@@ -191,9 +203,9 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
           const props = f.properties || {};
           return (
             <CircleMarker
-              key={`fire-${i}-${lat}-${lon}`}
+              key={`fire-real-${i}-${lat}-${lon}`}
               center={[lat, lon]}
-              radius={6}
+              radius={Math.max(4, (props.brightness || 300) / 50)}
               color="#ff4444"
               fillColor="#ff0000"
               fillOpacity={0.8}
@@ -201,13 +213,15 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
             >
               <Tooltip direction="top" offset={[0, -10]}>
                 <div className="text-sm">
-                  <b>Active Fire</b>
+                  <b>🔥 Active Fire (FIRMS)</b>
                   <br />
                   Brightness: {props.brightness || "N/A"}
                   <br />
                   Date: {props.acq_date || "N/A"}
                   <br />
                   Confidence: {props.confidence || "N/A"}%
+                  <br />
+                  Satellite: {props.satellite || "VIIRS"}
                 </div>
               </Tooltip>
             </CircleMarker>

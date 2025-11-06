@@ -1,10 +1,11 @@
 "use client";
 import { useAuth } from "@/hooks/useAuth";
 import { useLayerControls } from "@/hooks/useLayerControls";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
 import SidePanel from "@/components/SidePanel";
+import Dashboard from "@/components/Dashboard";
 import Legend from "@/components/Legend";
 import CompactControls from "@/components/CompactControls";
 
@@ -14,6 +15,8 @@ export default function Home() {
   const { userId, error } = useAuth();
   const { layerStates, toggleLayer, setOpacity } = useLayerControls();
   const mapRef = useRef();
+  const [isDashboardCollapsed, setIsDashboardCollapsed] = useState(false);
+  const [showSidePanel, setShowSidePanel] = useState(false);
 
   if (error) return <p className="text-red-600 p-4">{error}</p>;
   if (!userId) return <p className="p-4">Authenticating...</p>;
@@ -40,7 +43,8 @@ export default function Home() {
             layerStates={layerStates}
             onLayerToggle={toggleLayer}
             onOpacityChange={setOpacity}
-            onAreaSelect={handleAreaSelect} 
+            onAreaSelect={handleAreaSelect}
+            onToggleLegacyPanel={() => setShowSidePanel(!showSidePanel)}
           />
 
           {/* 🗺 Legend (ensure it's visible above the map) */}
@@ -63,10 +67,26 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Side Panel */}
-        <div className="w-80 border-l">
-          <SidePanel />
-        </div>
+        {/* Dashboard */}
+        <Dashboard 
+          isCollapsed={isDashboardCollapsed}
+          onToggleCollapse={() => setIsDashboardCollapsed(!isDashboardCollapsed)}
+        />
+        
+        {/* Legacy Side Panel (hidden by default, can be toggled) */}
+        {showSidePanel && (
+          <div className="w-80 border-l bg-white">
+            <div className="p-2 border-b">
+              <button 
+                onClick={() => setShowSidePanel(false)}
+                className="text-xs text-tech-500 hover:text-tech-700"
+              >
+                ← Hide Legacy Panel
+              </button>
+            </div>
+            <SidePanel />
+          </div>
+        )}
       </div>
     </div>
   );

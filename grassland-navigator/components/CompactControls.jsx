@@ -4,7 +4,7 @@ import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
 import { useMap } from "react-leaflet";
 import GeographicAreaSelector from "./GeographicAreaSelector";
 
-export default function CompactControls({ layerStates, onLayerToggle, onOpacityChange, onAreaSelect }) {
+export default function CompactControls({ layerStates, onLayerToggle, onOpacityChange, onAreaSelect, onToggleLegacyPanel }) {
   const [expandedPanel, setExpandedPanel] = useState(null);
 
   const handleToggle = (layerKey) => {
@@ -154,6 +154,12 @@ export default function CompactControls({ layerStates, onLayerToggle, onOpacityC
                 </button>
                 <button className="w-full bg-slate-100 hover:bg-slate-200 p-2 text-sm font-medium text-slate-700 rounded-md transition-colors">
                   📊 Export
+                </button>
+                <button 
+                  onClick={onToggleLegacyPanel}
+                  className="w-full bg-slate-100 hover:bg-slate-200 p-2 text-sm font-medium text-slate-700 rounded-md transition-colors"
+                >
+                  🔧 Legacy Panel
                 </button>
               </div>
             </div>
