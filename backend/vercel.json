@@ -38,6 +38,14 @@
     {
       "src": "/api/temporal-data",
       "dest": "/serverless/api/temporal-data.js"
+    },
+    {
+      "src": "/api/risk-score",
+      "dest": "/serverless/api/risk-score.js"
+    },
+    {
+      "src": "/api/actionable-advice",
+      "dest": "/serverless/api/actionable-advice.js"
     }
   ],
   "env": {

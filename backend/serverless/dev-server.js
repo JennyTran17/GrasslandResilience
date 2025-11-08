@@ -48,6 +48,15 @@ const temporalHandler = wrapHandler(loadHandler('./api/temporal-data.js'));
 app.get('/api/temporal-data', temporalHandler);
 app.post('/api/temporal-data', temporalHandler);
 
+// Risk scoring and advice endpoints support both GET and POST
+const riskScoreHandler = wrapHandler(loadHandler('./api/risk-score.js'));
+app.get('/api/risk-score', riskScoreHandler);
+app.post('/api/risk-score', riskScoreHandler);
+
+const adviceHandler = wrapHandler(loadHandler('./api/actionable-advice.js'));
+app.get('/api/actionable-advice', adviceHandler);
+app.post('/api/actionable-advice', adviceHandler);
+
 // Root route
 app.get('/', (req, res) => {
   res.json({
@@ -58,7 +67,9 @@ app.get('/', (req, res) => {
       'GET /api/ndvi-tiles',
       'GET|POST /api/smap-moisture',
       'GET|POST /api/firms-fires',
-      'GET|POST /api/temporal-data'
+      'GET|POST /api/temporal-data',
+      'GET|POST /api/risk-score',
+      'GET|POST /api/actionable-advice'
     ]
   });
 });
@@ -74,7 +85,9 @@ app.get('/api', (req, res) => {
       'GET /api/ndvi-tiles?z={z}&x={x}&y={y} - NDVI tile proxy',
       'GET|POST /api/smap-moisture - SMAP Soil Moisture data',
       'GET|POST /api/firms-fires - FIRMS Active Fire data',
-      'GET|POST /api/temporal-data?lat={lat}&lng={lng} - Time series data for clicked location'
+      'GET|POST /api/temporal-data?lat={lat}&lng={lng} - Time series data for clicked location',
+      'GET|POST /api/risk-score?lat={lat}&lng={lng} - Calculate 1-5 resilience risk score',
+      'GET|POST /api/actionable-advice?riskScore={score} - Generate farming recommendations'
     ]
   });
 });
@@ -90,4 +103,6 @@ app.listen(PORT, () => {
   console.log('  GET|POST /api/smap-moisture');
   console.log('  GET|POST /api/firms-fires');
   console.log('  GET|POST /api/temporal-data?lat={lat}&lng={lng}');
+  console.log('  GET|POST /api/risk-score?lat={lat}&lng={lng}');
+  console.log('  GET|POST /api/actionable-advice?riskScore={score}');
 });
