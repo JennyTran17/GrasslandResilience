@@ -189,8 +189,9 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
 
         const firesRes = await fetch(`${BASE_URL}/api/firms-fires`);
         const firesJson = await firesRes.json();
+        const fireData = firesJson.data?.fires?.features || [];
         if (firesJson?.success && firesJson.data) {
-          setFires(firesJson.data.features || []);
+          setFires(fireData);
           setDataStatus((p) => ({ ...p, fires: true }));
         }
       } catch (err) {

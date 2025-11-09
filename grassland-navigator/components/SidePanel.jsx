@@ -99,7 +99,7 @@ export default function SidePanel() {
           <div className="text-sm space-y-1">
             <div>Source: <span className="font-medium">NASA FIRMS</span></div>
             <div>Detection: <span className="font-medium">Near real-time</span></div>
-            <div>Active Fires: <span className="font-medium text-red-600">{data.fires.features?.length || 0}</span></div>
+            <div>Active Fires: <span className="font-medium text-red-600">{data.fires.fires?.features?.length || 0}</span></div>
             <div className="mt-2 p-2 bg-red-50 rounded text-xs">
               Real-time fire detection helps assess immediate threats to grassland areas.
             </div>

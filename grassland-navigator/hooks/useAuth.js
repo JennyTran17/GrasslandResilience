@@ -7,26 +7,46 @@ export function useAuth() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-  console.log("Auth state initializing...");
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("✅ Firebase user authenticated:", user.uid);
-      setUserId(user.uid);
-    } else {
-      console.log("⚙️ Signing in anonymously...");
-      signInAnonymously(auth)
-        .then((cred) => {
-          console.log("✅ Anonymous sign-in successful:", cred.user.uid);
-          setUserId(cred.user.uid);
-        })
-        .catch((err) => {
-          console.error("❌ Sign-in failed:", err);
-          setError(err.message);
-        });
+    try {
+      console.log("Auth state initializing...");
+      
+      if (!auth || !onAuthStateChanged) {
+        console.warn("Firebase not properly initialized, using demo mode");
+        setUserId('demo-user');
+        return;
+      }
+
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log("✅ Firebase user authenticated:", user.uid);
+          setUserId(user.uid);
+          setError(null);
+        } else {
+          console.log("⚙️ Signing in anonymously...");
+          if (signInAnonymously) {
+            signInAnonymously(auth)
+              .then((cred) => {
+                console.log("✅ Anonymous sign-in successful:", cred.user.uid);
+                setUserId(cred.user.uid);
+                setError(null);
+              })
+              .catch((err) => {
+                console.warn("⚠️ Sign-in failed, using demo mode:", err.message);
+                setUserId('demo-user');
+                setError(null);
+              });
+          } else {
+            setUserId('demo-user');
+          }
+        }
+      });
+      return () => unsubscribe();
+    } catch (err) {
+      console.warn("⚠️ Auth initialization failed, using demo mode:", err.message);
+      setUserId('demo-user');
+      setError(null);
     }
-  });
-  return () => unsubscribe();
-}, []);
+  }, []);
 
 
   return { userId, error };

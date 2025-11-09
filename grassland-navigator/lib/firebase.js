@@ -3,15 +3,26 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = globalThis.__firebase_config || {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "demo-key",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "demo.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "demo-project",
 };
 
-console.log("Firebase config:", firebaseConfig);
+let app, auth, db;
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  console.log("Firebase initialized successfully");
+} catch (error) {
+  console.warn("Firebase initialization failed:", error.message);
+  // Create mock auth object for development
+  auth = {
+    currentUser: { uid: 'demo-user' },
+    onAuthStateChanged: (callback) => callback({ uid: 'demo-user' })
+  };
+  db = null;
+}
 
 export { auth, db, signInAnonymously, onAuthStateChanged };
