@@ -94,13 +94,15 @@ export default async function handler(req, res) {
 
 /**
  * Fetch real fire data from NASA FIRMS API
+ * Using area endpoint with Ireland bounding box
  */
 async function fetchFIRMSData(apiKey, source, days, minConfidence) {
-  // Ireland country code
-  const countryCode = 'IRL';
+  // Ireland bounding box: west, south, east, north
+  const irelandBbox = '-10.5,51.4,-5.4,55.4';
 
-  // Construct FIRMS API URL (using country endpoint for Ireland)
-  const firmsUrl = `https://firms.modaps.eosdis.nasa.gov/api/country/geojson/${apiKey}/${source}/${countryCode}/${days}`;
+  // Construct FIRMS area API URL with bounding box
+  // Format: /api/area/csv/MAP_KEY/source/area/dayrange/date
+  const firmsUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${apiKey}/${source}/${irelandBbox}/${days}`;
 
   console.log(`[FIRMS] Calling API: ${firmsUrl.replace(apiKey, '***KEY***')}`);
 
@@ -115,7 +117,10 @@ async function fetchFIRMSData(apiKey, source, days, minConfidence) {
     throw new Error(`FIRMS API error: ${response.status} ${response.statusText}`);
   }
 
-  const geoJson = await response.json();
+  const csvText = await response.text();
+
+  // Convert CSV to GeoJSON
+  const geoJson = convertCSVToGeoJSON(csvText);
 
   console.log(`[FIRMS] Received ${geoJson.features ? geoJson.features.length : 0} fire detections`);
 
@@ -183,6 +188,45 @@ async function fetchFIRMSData(apiKey, source, days, minConfidence) {
       }
     }
   };
+}
+
+/**
+ * Convert FIRMS CSV to GeoJSON format
+ */
+function convertCSVToGeoJSON(csvText) {
+  const lines = csvText.trim().split('\n');
+  if (lines.length <=  1) {
+    return { type: 'FeatureCollection', features: [] };
+  }
+
+  const headers = lines[0].split(',');
+  const features = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',');
+    if (values.length < headers.length) continue;
+
+    const properties = {};
+    headers.forEach((header, index) => {
+      properties[header] = values[index];
+    });
+
+    // Convert numeric fields
+    const lat = parseFloat(properties.latitude);
+    const lon = parseFloat(properties.longitude);
+    if (isNaN(lat) || isNaN(lon)) continue;
+
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [lon, lat]
+      },
+      properties: properties
+    });
+  }
+
+  return { type: 'FeatureCollection', features };
 }
 
 /**
