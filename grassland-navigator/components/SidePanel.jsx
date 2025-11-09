@@ -1,11 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import useSavedFields from "@/hooks/useSavedFields";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-const BASE_URL = "https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app";
+
 
 export default function SidePanel() {
   const [data, setData] = useState({ ndvi: null, smap: null, fires: null, health: null });
   const [loading, setLoading] = useState(true);
+  const { userId } = useAuth();
+  const fields = useSavedFields(userId);
 
   useEffect(() => {
     async function fetchData() {
@@ -16,7 +23,7 @@ export default function SidePanel() {
           fetch(`${BASE_URL}/api/firms-fires`).then(r => r.json()),
           fetch(`${BASE_URL}/api/health`).then(r => r.json())
         ]);
-        
+
         setData({
           ndvi: ndviRes.success ? ndviRes.data : null,
           smap: smapRes.success ? smapRes.data : null,
@@ -31,6 +38,9 @@ export default function SidePanel() {
     }
     fetchData();
   }, []);
+
+
+
 
   if (loading) return <div className="p-4">Loading backend data…</div>;
 
@@ -117,10 +127,49 @@ export default function SidePanel() {
           </div>
           <div className="flex justify-between items-center p-2 bg-red-50 rounded">
             <span className="text-sm">Severe Risk</span>
-            <span className="text-sm font-medium">10%</span>
+            <span className="text-sm font-medium">50%</span>
           </div>
         </div>
       </section>
+      <h4>Your Fields</h4>
+      {Array.isArray(fields) && fields.length > 0 ? (
+        <ul>
+  {fields.map(f => (
+    <li key={f.id} className="mb-2">
+      <div className="font-medium">{f.name}</div>
+      <small>
+        ({f.geometry?.coordinates?.[1].toFixed(3)},
+        {f.geometry?.coordinates?.[0].toFixed(3)})
+      </small>
+      {f.latestScore && (
+        <div className="text-sm mt-1">
+          <span className="font-semibold">Score:</span> {f.latestScore.score} <br/>
+          <span className="text-gray-600 italic">{f.latestScore.advice}</span>
+        </div>
+      )}
+    </li>
+  ))}
+</ul>
+
+      ) : (
+        <div className="text-sm text-gray-500">No saved fields yet.</div>
+      )}
+      {/* button for testing */}
+      <button
+        onClick={async () => {
+          if (!userId) return alert("Not signed in");
+          await addDoc(collection(db, `users/${userId}/fields`), {
+            name: "Test Field",
+            geometry: { coordinates: [-8.0, 53.3] },
+            createdAt: new Date(),
+          });
+        }}
+        className="bg-emerald-600 text-white px-3 py-1 rounded text-sm"
+      >
+        ➕ Add Test Field
+      </button>
+
     </div>
+
   );
 }
