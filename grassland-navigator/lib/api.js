@@ -1,5 +1,13 @@
 // /lib/api.js
 const BASE_URL = "https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app";
+const BASE = BASE_URL;
+
+// Helper function for JSON fetching
+async function fetchJSON(url, options = {}) {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`API request failed: ${res.status}`);
+  return res.json();
+}
 
 export const endpoints = {
   fires: `${BASE_URL}/api/firms-fires`,
@@ -28,9 +36,7 @@ export async function getTemporal(lat, lng) {
   return fetchJSON(`${BASE}/api/temporal-data?lat=${lat}&lng=${lng}`);
 }
 
-//not done yet as of 6/11/2025
 export async function postRiskScore(payload) {
-  // backend 1.1: accepts lat/lng and returns risk score & advice
   return fetchJSON(`${BASE}/api/risk-score`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

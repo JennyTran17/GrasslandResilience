@@ -69,7 +69,7 @@ export default async function handler(req, res) {
       headers: {
         'User-Agent': 'Grassland-Resilience-Navigator/1.0',
         'Accept': 'image/png,image/jpeg,image/*',
-        'Referer': 'https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app'
+        'Referer': 'https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app/'
       },
       timeout: 10000
     });
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       console.error(`GEE tile fetch failed: ${response.status} ${response.statusText}`);
       console.error(`Tile URL: ${tileUrl}`);
-      
+
       // Return a transparent tile if GEE fails
       const transparentPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
       res.setHeader('Content-Type', 'image/png');
@@ -89,10 +89,10 @@ export default async function handler(req, res) {
     // Get the tile image as a buffer
     const imageBuffer = await response.buffer();
     const contentType = response.headers.get('content-type') || 'image/png';
-    
+
     // Debug: Log tile info
     console.log(`Tile fetched: ${zoom}/${col}/${row}, Size: ${imageBuffer.length} bytes, Type: ${contentType}`);
-    
+
     // Check if it's a valid image (not an error response)
     if (imageBuffer.length < 100) {
       console.warn('Suspiciously small tile response, may be an error');

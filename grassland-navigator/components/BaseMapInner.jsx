@@ -173,26 +173,34 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
       try {
         console.log("🌍 Fetching backend layers...");
 
-        const ndviRes = await fetch(`${BASE_URL}/api/ndvi-anomaly`);
+        const ndviRes = await fetch(`${BASE_URL}/api/ndvi-anomaly`, {
+          cache: 'no-cache'
+        });
         const ndviJson = await ndviRes.json();
+        console.log('🛰️ NDVI Response:', ndviJson);
         if (ndviJson?.success && ndviJson.data?.tileUrl) {
           setNdvi(ndviJson.data);
           setDataStatus((p) => ({ ...p, ndvi: true }));
+          console.log('✅ NDVI Tile URL:', ndviJson.data.tileUrl);
         }
 
         const smapRes = await fetch(`${BASE_URL}/api/smap-moisture`);
         const smapJson = await smapRes.json();
-        if (smapJson?.success && smapJson.data) {
+        console.log('💧 SMAP Response:', smapJson);
+        if (smapJson?.success && smapJson.data?.tileUrl) {
           setSmap(smapJson.data);
           setDataStatus((p) => ({ ...p, smap: true }));
+          console.log('✅ SMAP Tile URL:', smapJson.data.tileUrl);
         }
 
         const firesRes = await fetch(`${BASE_URL}/api/firms-fires`);
         const firesJson = await firesRes.json();
+        console.log('🔥 FIRMS Response:', firesJson);
         const fireData = firesJson.data?.fires?.features || [];
         if (firesJson?.success && firesJson.data) {
           setFires(fireData);
           setDataStatus((p) => ({ ...p, fires: true }));
+          console.log('✅ Active Fires Count:', fireData.length);
         }
       } catch (err) {
         console.error("🔥 Error loading map layers:", err);
@@ -233,64 +241,31 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
         attribution="&copy; OpenStreetMap contributors"
       />
 
-      {/* NDVI Anomaly Layer - Real Backend GEE Data */}
-      {ndvi?.tileUrl && layerStates?.ndvi?.visible && (
+      {/* NDVI Anomaly Layer - Real NASA Data */}
+      {layerStates?.ndvi?.visible && ndvi?.tileUrl && (
         <TileLayer
-          key={`ndvi-real-${layerStates.ndvi.opacity}`}
+          key={`ndvi-layer`}
           url={ndvi.tileUrl}
-          attribution="NDVI Anomaly (NASA VIIRS) - Real Data"
+          attribution="NDVI Anomaly (NASA VIIRS)"
           opacity={layerStates.ndvi.opacity}
           maxZoom={15}
+          className="ndvi-overlay"
         />
       )}
 
-      {/* SMAP Soil Moisture Layer - Backend Data Priority */}
-      {layerStates?.soilMoisture?.visible && (
-        <>
-          {smap?.tileUrl ? (
-            <TileLayer
-              key={`smap-real-${layerStates.soilMoisture.opacity}`}
-              url={smap.tileUrl}
-              attribution="SMAP Soil Moisture (NASA) - Real Data"
-              opacity={layerStates.soilMoisture.opacity}
-              maxZoom={15}
-            />
-          ) : (
-            <TileLayer
-              key={`smap-fallback-${layerStates.soilMoisture.opacity}`}
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="SMAP Soil Moisture (NASA) - Visualization"
-              opacity={layerStates.soilMoisture.opacity}
-              maxZoom={15}
-              className="smap-overlay"
-            />
-          )}
-        </>
-      )}
-
-      {/* Risk Assessment Layer */}
-      {layerStates?.riskLevel?.visible && (
+      {/* SMAP Soil Moisture Layer - Real NASA Data */}
+      {layerStates?.soilMoisture?.visible && smap?.tileUrl && (
         <TileLayer
-          key={`risk-${layerStates.riskLevel.opacity}`}
-          url="https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=demo"
-          attribution="Risk Assessment"
-          opacity={layerStates.riskLevel.opacity}
+          key={`smap-${layerStates.soilMoisture.opacity}`}
+          url={smap.tileUrl}
+          attribution="SMAP Soil Moisture (NASA)"
+          opacity={layerStates.soilMoisture.opacity}
           maxZoom={15}
-          className="risk-overlay"
+          className="smap-overlay"
         />
       )}
 
-      {/* Precipitation Layer */}
-      {layerStates?.precipitation?.visible && (
-        <TileLayer
-          key={`precip-${layerStates.precipitation.opacity}`}
-          url="https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=demo"
-          attribution="Precipitation Data"
-          opacity={layerStates.precipitation.opacity}
-          maxZoom={15}
-          className="precip-overlay"
-        />
-      )}
+
 
       {/* FIRMS Active Fires - Real Backend Data */}
       {fires && Array.isArray(fires) && fires.length > 0 &&

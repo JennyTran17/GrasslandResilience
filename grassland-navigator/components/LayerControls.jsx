@@ -1,23 +1,28 @@
 "use client";
 import { useState } from "react";
-import { getNDVI, getSoilMoisture, getFires } from "../lib/api";
+// Import remains, but not used here
+import { getNDVI, getSoilMoisture, getFires } from "../lib/api"; 
 
 export default function LayersControl({ onToggle }) {
-  const [layers, setLayers] = useState({
-    ndvi: true,
-    smap: true,
-    fires: true,
+  const [layerVisibilities, setLayerVisibilities] = useState({
+    ndvi: true, // Corresponds to layerStates.ndvi
+    soilMoisture: true, // Corresponds to layerStates.soilMoisture
+    fires: true, // Corresponds to your CircleMarker rendering (which is fine)
   });
 
   function toggleLayer(key) {
-    const updated = { ...layers, [key]: !layers[key] };
-    setLayers(updated);
-    onToggle(updated);
+    const updatedVisibilities = { 
+        ...layerVisibilities, 
+        [key]: !layerVisibilities[key] 
+    };
+    
+    setLayerVisibilities(updatedVisibilities);
+    onToggle(updatedVisibilities); 
   }
 
   return (
     <div className="absolute top-4 left-4 bg-white p-3 rounded shadow-md text-sm space-y-2">
-      {Object.entries(layers).map(([k, v]) => (
+      {Object.entries(layerVisibilities).map(([k, v]) => (
         <label key={k} className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -25,7 +30,7 @@ export default function LayersControl({ onToggle }) {
             onChange={() => toggleLayer(k)}
           />
           {k === "ndvi" && "NDVI Anomaly"}
-          {k === "smap" && "Soil Moisture"}
+          {k === "soilMoisture" && "Soil Moisture"} {/* 3. Update the display label */}
           {k === "fires" && "FIRMS Fires"}
         </label>
       ))}

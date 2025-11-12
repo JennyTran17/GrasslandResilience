@@ -159,7 +159,8 @@ html, body, #__next {
 
 /* Layer overlays with distinct colors */
 .ndvi-overlay {
-  filter: hue-rotate(60deg) saturate(2.5) contrast(1.8) brightness(0.8) !important;
+  filter: hue-rotate(30deg) saturate(3) contrast(2) brightness(0.7) !important;
+  mix-blend-mode: overlay !important;
 }
 
 .smap-overlay {
