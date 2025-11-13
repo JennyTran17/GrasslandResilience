@@ -41,6 +41,7 @@ function ClickHandler({ userId, onScoreUpdate }) {
         }
       } catch (err) {
         console.error("❌ Temporal fetch error:", err);
+        setTemporalData({ location: { lat, lng }, message: "Temporal data unavailable" });
       }
 
       // Fetch risk score
@@ -49,9 +50,10 @@ function ClickHandler({ userId, onScoreUpdate }) {
         const res = await postRiskScore(payload);
         const data = res.data || res;
         setRiskResult(data);
-        onScoreUpdate?.(data); // ✅ send it up to parent
+        onScoreUpdate?.(data);
       } catch (err) {
         console.error("❌ Risk scoring error:", err);
+        setRiskResult({ riskScore: "N/A", advice: "Risk analysis unavailable", location: { lat, lng } });
       }
 
       // Open save form
@@ -67,12 +69,13 @@ function ClickHandler({ userId, onScoreUpdate }) {
       return;
     }
 
+    const coords = temporalData?.location ? 
+      [temporalData.location.lng, temporalData.location.lat] : 
+      [riskResult?.location?.lng || -8.0, riskResult?.location?.lat || 53.3];
+
     const geometry = {
       type: "Point",
-      coordinates: [
-        temporalData?.location?.lng ?? 0,
-        temporalData?.location?.lat ?? 0,
-      ],
+      coordinates: coords,
     };
 
     const doc = {
@@ -80,7 +83,7 @@ function ClickHandler({ userId, onScoreUpdate }) {
       geometry,
       createdAt: serverTimestamp(),
       latestScore: {
-        score: riskResult?.score ?? null,
+        score: riskResult?.riskScore ?? riskResult?.score ?? null,
         advice: riskResult?.advice ?? null,
       },
     };
@@ -94,27 +97,15 @@ function ClickHandler({ userId, onScoreUpdate }) {
       alert("Failed to save field. See console for details.");
     }
   }
-  // <ScoreVisualisation
-  //   score={riskResult?.latestScore?.score}
-  //   advice={riskResult?.advice}
-  // />
 
   return (
     <>
-      {/* <RiskResultCard result={riskResult} /> */}
       <TemporalModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         data={temporalData || {}}
       />
-      {/* {riskResult && (
-        <div className="absolute bottom-6 left-6 z-[1000]">
-          <ScoreVisualisation
-            score={riskResult?.score}
-            advice={riskResult?.advice}
-          />
-        </div>
-      )} */}
+
 
       {saveMode && (
         <div className="fixed right-6 top-24 z-[2000] bg-white p-3 rounded shadow w-80">
@@ -187,7 +178,7 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
         const smapRes = await fetch(`${BASE_URL}/api/smap-moisture`);
         const smapJson = await smapRes.json();
         console.log('💧 SMAP Response:', smapJson);
-        if (smapJson?.success && smapJson.data?.tileUrl) {
+        if (smapJson?.success && smapJson.data) {
           setSmap(smapJson.data);
           setDataStatus((p) => ({ ...p, smap: true }));
           console.log('✅ SMAP Tile URL:', smapJson.data.tileUrl);
@@ -242,30 +233,37 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
       />
 
       {/* NDVI Anomaly Layer - Real NASA Data */}
-      {layerStates?.ndvi?.visible && ndvi?.tileUrl && (
-        <TileLayer
-          key={`ndvi-layer`}
-          url={ndvi.tileUrl}
-          attribution="NDVI Anomaly (NASA VIIRS)"
-          opacity={layerStates.ndvi.opacity}
-          maxZoom={15}
-          className="ndvi-overlay"
-        />
+      {ndvi?.tileUrl && layerStates?.ndvi?.visible && (
+          <TileLayer
+                key={`ndvi-real-${layerStates.ndvi.opacity}`}
+                url={ndvi.tileUrl}
+                attribution="NDVI Anomaly (NASA VIIRS) - Real Data"
+                opacity={layerStates.ndvi.opacity}
+                maxZoom={15}
+
+              />
+            )}
+
+      {/* SMAP Soil Moisture Layer - No tile service available */}
+      {layerStates?.soilMoisture?.visible && (
+        <div className="absolute top-20 left-4 z-[1000] bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-2 rounded text-sm">
+          💧 SMAP Soil Moisture: Data available via API but no tile visualization yet
+        </div>
       )}
 
-      {/* SMAP Soil Moisture Layer - Real NASA Data */}
-      {layerStates?.soilMoisture?.visible && smap?.tileUrl && (
-        <TileLayer
-          key={`smap-${layerStates.soilMoisture.opacity}`}
-          url={smap.tileUrl}
-          attribution="SMAP Soil Moisture (NASA)"
-          opacity={layerStates.soilMoisture.opacity}
-          maxZoom={15}
-          className="smap-overlay"
-        />
+      {/* Risk Assessment Layer - No tile service available */}
+      {layerStates?.riskLevel?.visible && (
+        <div className="absolute top-32 left-4 z-[1000] bg-orange-100 border border-orange-400 text-orange-800 px-3 py-2 rounded text-sm">
+          ⚠️ Risk Assessment: Available via click analysis (click map to get risk score)
+        </div>
       )}
 
-
+      {/* Precipitation Layer - No tile service available */}
+      {layerStates?.precipitation?.visible && (
+        <div className="absolute top-44 left-4 z-[1000] bg-blue-100 border border-blue-400 text-blue-800 px-3 py-2 rounded text-sm">
+          🌧️ Precipitation: Data available via temporal analysis (click map for time series)
+        </div>
+      )}
 
       {/* FIRMS Active Fires - Real Backend Data */}
       {fires && Array.isArray(fires) && fires.length > 0 &&
@@ -304,10 +302,10 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
       <ClickHandler userId={userId} onScoreUpdate={setLatestScore} />
       {latestScore && (
         <div className="absolute bottom-6 left-6 z-[1000]">
-          {/* <ScoreVisualisation
+          { <ScoreVisualisation
             score={latestScore.score}
             advice={latestScore.advice}
-          /> */}
+          /> }
         </div>
       )}
 

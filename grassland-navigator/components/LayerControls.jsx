@@ -11,13 +11,13 @@ export default function LayersControl({ onToggle }) {
   });
 
   function toggleLayer(key) {
-    const updatedVisibilities = { 
-        ...layerVisibilities, 
-        [key]: !layerVisibilities[key] 
+    const updatedVisibilities = {
+        ...layerVisibilities,
+        [key]: !layerVisibilities[key]
     };
-    
+
     setLayerVisibilities(updatedVisibilities);
-    onToggle(updatedVisibilities); 
+    onToggle(updatedVisibilities);
   }
 
   return (

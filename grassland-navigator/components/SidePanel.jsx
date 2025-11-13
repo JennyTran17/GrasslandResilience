@@ -10,6 +10,7 @@ const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.verce
 
 export default function SidePanel() {
   const [data, setData] = useState({ ndvi: null, smap: null, fires: null, health: null });
+  const [fieldData, setFieldData] = useState({});
   const [loading, setLoading] = useState(true);
   const { userId } = useAuth();
   const fields = useSavedFields(userId);
@@ -38,6 +39,38 @@ export default function SidePanel() {
     }
     fetchData();
   }, []);
+
+  useEffect(() => {
+    async function fetchFieldData() {
+      if (!fields?.length) return;
+      
+      const newFieldData = {};
+      for (const field of fields) {
+        if (field.geometry?.coordinates) {
+          const [lng, lat] = field.geometry.coordinates;
+          try {
+            const [riskRes, temporalRes] = await Promise.all([
+              fetch(`${BASE_URL}/api/risk-score?lat=${lat}&lng=${lng}`).then(r => r.json()),
+              fetch(`${BASE_URL}/api/temporal-data?lat=${lat}&lng=${lng}`).then(r => r.json())
+            ]);
+            
+            if (riskRes.success) {
+              const adviceRes = await fetch(`${BASE_URL}/api/actionable-advice?riskScore=${riskRes.data.riskScore}`).then(r => r.json());
+              newFieldData[field.id] = {
+                risk: riskRes.data,
+                temporal: temporalRes.success ? temporalRes.data : null,
+                advice: adviceRes.success ? adviceRes.data : null
+              };
+            }
+          } catch (err) {
+            console.error(`Field data fetch error for ${field.name}:`, err);
+          }
+        }
+      }
+      setFieldData(newFieldData);
+    }
+    fetchFieldData();
+  }, [fields]);
 
 
 
@@ -110,64 +143,73 @@ export default function SidePanel() {
       </section>
 
       {/* Risk Assessment */}
-      <section>
-        <h3 className="font-semibold mb-2 text-orange-700">⚠️ Risk Assessment</h3>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-            <span className="text-sm">Minimal Risk</span>
-            <span className="text-sm font-medium">15%</span>
-          </div>
-          <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
-            <span className="text-sm">Moderate Risk</span>
-            <span className="text-sm font-medium">35%</span>
-          </div>
-          <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
-            <span className="text-sm">Elevated Risk</span>
-            <span className="text-sm font-medium">40%</span>
-          </div>
-          <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-            <span className="text-sm">Severe Risk</span>
-            <span className="text-sm font-medium">50%</span>
-          </div>
+      <section className="border-b pb-4">
+        <h3 className="font-semibold mb-2 text-orange-700">📊 Risk Assessment</h3>
+        <div className="text-sm text-gray-600 mb-2">
+          Click on the map to analyze grassland resilience risk for any location.
         </div>
       </section>
-      <h4>Your Fields</h4>
-      {Array.isArray(fields) && fields.length > 0 ? (
-        <ul>
-  {fields.map(f => (
-    <li key={f.id} className="mb-2">
-      <div className="font-medium">{f.name}</div>
-      <small>
-        ({f.geometry?.coordinates?.[1].toFixed(3)},
-        {f.geometry?.coordinates?.[0].toFixed(3)})
-      </small>
-      {f.latestScore && (
-        <div className="text-sm mt-1">
-          <span className="font-semibold">Score:</span> {f.latestScore.score} <br/>
-          <span className="text-gray-600 italic">{f.latestScore.advice}</span>
-        </div>
-      )}
-    </li>
-  ))}
-</ul>
 
-      ) : (
-        <div className="text-sm text-gray-500">No saved fields yet.</div>
-      )}
-      {/* button for testing */}
-      <button
-        onClick={async () => {
-          if (!userId) return alert("Not signed in");
-          await addDoc(collection(db, `users/${userId}/fields`), {
-            name: "Test Field",
-            geometry: { coordinates: [-8.0, 53.3] },
-            createdAt: new Date(),
-          });
-        }}
-        className="bg-emerald-600 text-white px-3 py-1 rounded text-sm"
-      >
-        ➕ Add Test Field
-      </button>
+      {/* Your Fields */}
+      <section className="border-b pb-4">
+        <h3 className="font-semibold mb-2 text-orange-700">🏞️ Your Fields</h3>
+        {Array.isArray(fields) && fields.length > 0 ? (
+          <div className="space-y-3">
+            {fields.map(f => {
+              const fData = fieldData[f.id];
+              return (
+                <div key={f.id} className="border rounded p-3 bg-gray-50">
+                  <div className="font-medium">{f.name}</div>
+                  <div className="text-xs text-gray-600 mb-2">
+                    ({f.geometry?.coordinates?.[1].toFixed(3)}, {f.geometry?.coordinates?.[0].toFixed(3)})
+                  </div>
+                  
+                  {fData?.risk && (
+                    <div className="mb-2">
+                      <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                        fData.risk.riskScore <= 2 ? 'bg-green-100 text-green-800' :
+                        fData.risk.riskScore <= 3 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        Risk Score: {fData.risk.riskScore}/5
+                      </div>
+                    </div>
+                  )}
+                  
+                  {fData?.advice && (
+                    <div className="text-xs text-gray-700 italic">
+                      {fData.advice.recommendation}
+                    </div>
+                  )}
+                  
+                  {fData?.temporal && (
+                    <div className="text-xs mt-1">
+                      <span className="font-medium">Latest NDVI:</span> {fData.temporal.ndvi?.[0]?.value?.toFixed(3) || 'N/A'}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500">No saved fields yet.</div>
+        )}
+        
+        {/* Test Button */}
+        <button
+          onClick={async () => {
+            if (!userId) return alert("Not signed in");
+            await addDoc(collection(db, `users/${userId}/fields`), {
+              name: "Test Field",
+              geometry: { coordinates: [-8.0, 53.3] },
+              createdAt: new Date(),
+            });
+          }}
+          className="bg-emerald-600 text-white px-3 py-1 rounded text-sm mt-3"
+        >
+          ➕ Add Test Field
+        </button>
+      </section>
 
     </div>
 

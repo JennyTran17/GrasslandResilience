@@ -25,13 +25,17 @@ export async function getFires() {
   return res.json();
 }
 export async function getTemporal(lat, lng) {
-  return fetchJSON(`${BASE}/api/temporal-data?lat=${lat}&lng=${lng}`);
+  const res = await fetch(`${BASE_URL}/api/temporal-data?lat=${lat}&lng=${lng}`);
+  if (!res.ok) throw new Error("Temporal data fetch failed");
+  return res.json();
 }
 
 export async function postRiskScore(payload) {
-  return fetchJSON(`${BASE}/api/risk-score`, {
+  const res = await fetch(`${BASE_URL}/api/risk-score`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+  if (!res.ok) throw new Error("Risk score fetch failed");
+  return res.json();
 }
