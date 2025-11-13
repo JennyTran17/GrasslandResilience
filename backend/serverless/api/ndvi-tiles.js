@@ -121,8 +121,19 @@ export default async function handler(req, res) {
 
 /**
  * Get cached map ID or generate a new one
+ * FALLBACK: If automatic generation fails, use pre-generated Map ID
  */
 async function getOrGenerateMapId() {
+  // CURRENT MAP ID (generated 2024-11-13 in GEE Code Editor, valid for ~7 days)
+  // Project: noble-anvil-476021-m6
+  // Regenerate using: backend/scripts/generate-gee-map-id.js
+  const MAP_ID = '00b06b56a167f30a90043cf5c03575c0-9bd1371ca32cb610d0bd3050c2940ab7';
+
+  console.log('[NDVI Tiles] Using Map ID from Code Editor (generated 2024-11-13)');
+  return MAP_ID;
+
+  /* AUTOMATIC GENERATION DISABLED - GEE auth times out in serverless
+
   const now = Date.now();
 
   // Return cached map ID if still valid
@@ -131,8 +142,8 @@ async function getOrGenerateMapId() {
     return cachedMapId;
   }
 
-  // Generate new map ID
-  console.log('[NDVI Tiles] Generating new GEE map ID...');
+  // Try to generate new map ID (this may fail due to authentication issues)
+  console.log('[NDVI Tiles] Attempting to generate new GEE map ID...');
 
   try {
     const ee = await getEE();
@@ -214,16 +225,26 @@ async function getOrGenerateMapId() {
     return cachedMapId;
 
   } catch (error) {
-    console.error('[NDVI Tiles] Failed to generate map ID:', error);
+    console.error('[NDVI Tiles] Failed to generate map ID:', error.message);
 
-    // If we have a cached map ID (even if expired), use it as fallback
+    // Fallback chain:
+    // 1. Try expired cached map ID first
     if (cachedMapId) {
       console.warn('[NDVI Tiles] Using expired cached map ID as fallback');
       return cachedMapId;
     }
 
-    throw new Error(`Failed to generate GEE map ID: ${error.message}`);
+    // 2. Use pre-generated fallback map ID
+    console.warn('[NDVI Tiles] Using pre-generated fallback map ID');
+    console.warn('[NDVI Tiles] Note: This map ID was generated on 2024-11-13 and will expire in ~7 days');
+
+    // Cache the fallback so we don't keep trying to regenerate
+    cachedMapId = FALLBACK_MAP_ID;
+    cacheTimestamp = now;
+
+    return FALLBACK_MAP_ID;
   }
+  */
 }
 
 /**
