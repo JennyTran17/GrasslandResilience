@@ -18,7 +18,7 @@ import { db } from "@/lib/firebase"; // ✅ Make sure this path is correct
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 const BASE_URL =
-  "https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app";
+  "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
 
 function ClickHandler({ userId, onScoreUpdate }) {
   const [modalOpen, setModalOpen] = useState(false);

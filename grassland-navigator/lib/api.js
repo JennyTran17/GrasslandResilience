@@ -1,13 +1,5 @@
 // /lib/api.js
-const BASE_URL = "https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app";
-const BASE = BASE_URL;
-
-// Helper function for JSON fetching
-async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, options);
-  if (!res.ok) throw new Error(`API request failed: ${res.status}`);
-  return res.json();
-}
+const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
 
 export const endpoints = {
   fires: `${BASE_URL}/api/firms-fires`,

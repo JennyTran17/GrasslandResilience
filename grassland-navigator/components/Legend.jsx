@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const BASE_URL = "https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
 
 export default function Legend() {
   const [ndviData, setNdviData] = useState(null);
