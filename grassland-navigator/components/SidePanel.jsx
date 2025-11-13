@@ -5,7 +5,7 @@ import useSavedFields from "@/hooks/useSavedFields";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-const BASE_URL = "https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
 
 
 export default function SidePanel() {
