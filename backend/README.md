@@ -117,22 +117,44 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for detailed endpoint docu
 
 ## Environment Variables
 
-Currently, the MVP uses hardcoded configurations. For production, add these to `.env`:
+Add these to `.env` file (see `.env` template):
 
 ```bash
-# NASA Earthdata (if needed)
+# NASA Earthdata
 EARTHDATA_USERNAME=your_username
 EARTHDATA_PASSWORD=your_password
 
-# Google Earth Engine (if implementing dynamic tile generation)
-GEE_SERVICE_ACCOUNT=your_service_account
-GEE_PRIVATE_KEY=your_private_key
+# Google Earth Engine (REQUIRED for live data)
+# See docs/gee-service-account-setup.md
+GEE_PROJECT_ID=your-gee-project-id
+GEE_SERVICE_ACCOUNT=your-sa@your-project.iam.gserviceaccount.com
+GEE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+USE_GEE_TEMPORAL=true
 
-# FIRMS API (if implementing real-time fire data)
-FIRMS_API_KEY=your_api_key
+# NASA FIRMS API (REQUIRED for live fire data)
+# See docs/firms-api-setup.md
+FIRMS_API_KEY=your_firms_api_key
+
+# API Authentication (Optional - for production)
+# See docs/api-authentication.md
+API_AUTH_ENABLED=false
+API_KEYS=your-api-key-1,your-api-key-2
 
 # Node Environment
 NODE_ENV=production
+```
+
+### Quick Setup Commands
+
+```bash
+# Test GEE authentication
+npm run test:gee
+
+# Generate API key for authentication
+npm run generate:apikey
+
+# Test Earthdata (legacy)
+npm run test:auth
 ```
 
 ## Data Sources & Attribution
@@ -212,23 +234,27 @@ PNG Tile → Frontend
 - [ ] Final testing
 - [ ] Deployment
 
-## Known Limitations (MVP)
+## Recent Updates (v1.1.0)
 
-1. **Temporal Data:** Uses generated sample data. Production needs real GEE API integration.
-2. **FIRMS Data:** Placeholder structure. Needs live API integration.
-3. **No Authentication:** Currently public API. Production should add API keys.
-4. **No Rate Limiting:** Should implement in production.
-5. **Manual GEE URLs:** Tile URLs are manually generated. Should automate via GEE Python API.
+### ✅ All Limitations Fixed!
+
+1. **✅ Temporal Data:** Now uses real Google Earth Engine API with automatic sampling
+2. **✅ FIRMS Data:** Live NASA FIRMS API integration with 3-hour caching
+3. **✅ API Authentication:** Optional API key authentication system implemented
+4. **✅ GEE Automation:** Automatic GEE tile URL generation with 24-hour caching
+5. **⏳ Rate Limiting:** Skipped for now (can be added later if needed)
 
 ## Production Deployment Checklist
 
-- [ ] Implement real GEE API sampling for temporal data
-- [ ] Integrate live FIRMS API
-- [ ] Add API authentication (API keys or OAuth)
-- [ ] Implement rate limiting
+- [x] Implement real GEE API sampling for temporal data ✅
+- [x] Integrate live FIRMS API ✅
+- [x] Add API authentication (API keys) ✅
+- [x] Implement dynamic GEE tile URL generation ✅
+- [ ] Set up GEE service account credentials (see docs/gee-service-account-setup.md)
+- [ ] Get FIRMS API key (see docs/firms-api-setup.md)
 - [ ] Set up monitoring (Sentry/DataDog)
-- [ ] Add Redis caching layer
-- [ ] Implement dynamic GEE tile URL generation
+- [ ] Add Redis caching layer (optional)
+- [ ] Implement rate limiting (optional)
 - [ ] Set up CI/CD pipeline
 - [ ] Add automated tests
 - [ ] Security audit

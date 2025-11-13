@@ -18,7 +18,9 @@ export default async function handler(req, res) {
       'GET /api/ndvi-tiles?z={z}&x={x}&y={y}': 'NDVI tile proxy - fetches tiles from Google Earth Engine',
       'GET /api/smap-moisture': 'SMAP Soil Moisture data configuration',
       'GET /api/firms-fires': 'FIRMS Active Fire detection data',
-      'GET|POST /api/temporal-data?lat={lat}&lng={lng}': 'Time series data for clicked location (12 months NDVI & soil moisture)'
+      'GET|POST /api/temporal-data?lat={lat}&lng={lng}': 'Time series data for clicked location (12 months NDVI & soil moisture)',
+      'GET|POST /api/risk-score?lat={lat}&lng={lng}': 'Calculate 1-5 resilience risk score from NDVI/SMAP data',
+      'GET|POST /api/actionable-advice?riskScore={score}': 'Generate farming recommendations (grazing, machinery, fertilizer)'
     },
     usage: {
       example: `${req.headers.host}/api/health`,
