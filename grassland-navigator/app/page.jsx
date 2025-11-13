@@ -4,7 +4,6 @@ import { useLayerControls } from "@/hooks/useLayerControls";
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Header from "@/components/Header";
-import SidePanel from "@/components/SidePanel";
 import Dashboard from "@/components/Dashboard";
 import Legend from "@/components/Legend";
 import CompactControls from "@/components/CompactControls";
