@@ -1,0 +1,126 @@
+/**
+ * GRASSLAND RESILIENCE NAVIGATOR
+ * API Endpoint: Precipitation Tile Proxy
+ *
+ * Proxies requests to Google Earth Engine tile server for GPM precipitation data
+ */
+
+const fetch = require('node-fetch');
+
+// CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export default async function handler(req, res) {
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
+  // Only allow GET requests
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Extract tile parameters from query string
+    const { z, x, y } = req.query;
+
+    // Validate parameters
+    if (!z || !x || !y) {
+      return res.status(400).json({
+        error: 'Missing tile parameters',
+        message: 'Required parameters: z (zoom), x (column), y (row)',
+        example: '/api/precipitation-tiles?z=8&x=123&y=87'
+      });
+    }
+
+    // Validate that parameters are numbers
+    const zoom = parseInt(z);
+    const col = parseInt(x);
+    const row = parseInt(y);
+
+    if (isNaN(zoom) || isNaN(col) || isNaN(row)) {
+      return res.status(400).json({
+        error: 'Invalid tile parameters',
+        message: 'Parameters z, x, y must be valid integers'
+      });
+    }
+
+    // Get map ID
+    const mapId = getMapId();
+
+    // Construct the GEE tile URL
+    const projectId = process.env.GEE_PROJECT_ID || 'noble-anvil-476021-m6';
+    const tileUrl = `https://earthengine.googleapis.com/v1/projects/${projectId}/maps/${mapId}/tiles/${zoom}/${col}/${row}`;
+
+    console.log(`[Precipitation Tiles] Fetching tile: z=${zoom}, x=${col}, y=${row}`);
+
+    // Fetch the tile from Google Earth Engine
+    const response = await fetch(tileUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Grassland-Resilience-Navigator/1.0'
+      }
+    });
+
+    // Check if the request was successful
+    if (!response.ok) {
+      console.error(`[Precipitation Tiles] GEE tile fetch failed: ${response.status} ${response.statusText}`);
+
+      return res.status(response.status).json({
+        error: 'Failed to fetch tile from Earth Engine',
+        status: response.status,
+        statusText: response.statusText,
+        hint: 'Map ID may have expired. Contact administrator to regenerate.'
+      });
+    }
+
+    // Get the tile image as a buffer
+    const imageBuffer = await response.buffer();
+    const contentType = response.headers.get('content-type') || 'image/png';
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour (precipitation updates frequently)
+
+    // Return the tile image
+    return res.status(200).send(imageBuffer);
+
+  } catch (error) {
+    console.error('[Precipitation Tiles] Error in tile proxy:', error);
+
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to proxy tile request',
+      message: error.message
+    });
+  }
+}
+
+/**
+ * Get Map ID for precipitation
+ *
+ * NOTE: This needs to be generated using the Earth Engine Code Editor
+ * Run the script at: backend/scripts/generate-precipitation-map-id.js
+ *
+ * TODO: Generate the actual Map ID
+ */
+function getMapId() {
+  // Map ID generated 2024-11-14 in GEE Code Editor
+  // Project: noble-anvil-476021-m6
+  // Dataset: GPM IMERG (precipitationCal)
+  // Valid for ~7 days
+  const MAP_ID = 'f25685a294616a549253cb8bbcdbda43-2aa61267e980a9d38bbd33572b7efec3';
+
+  console.log('[Precipitation Tiles] Using Map ID from Code Editor (generated 2024-11-14)');
+
+  return MAP_ID;
+}
