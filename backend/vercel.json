@@ -46,6 +46,14 @@
     {
       "src": "/api/actionable-advice",
       "dest": "/serverless/api/actionable-advice.js"
+    },
+    {
+      "src": "/api/soil-moisture-tiles",
+      "dest": "/serverless/api/soil-moisture-tiles.js"
+    },
+    {
+      "src": "/api/precipitation-tiles",
+      "dest": "/serverless/api/precipitation-tiles.js"
     }
   ],
   "env": {
