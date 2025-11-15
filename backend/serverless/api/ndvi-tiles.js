@@ -69,12 +69,15 @@ export default async function handler(req, res) {
 
     console.log(`[NDVI Tiles] Fetching tile: z=${zoom}, x=${col}, y=${row}`);
 
-    // Fetch the tile from Google Earth Engine
+    // Fetch the tile from Google Earth Engine with proper headers
     const response = await fetch(tileUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Grassland-Resilience-Navigator/1.0'
-      }
+        'User-Agent': 'Grassland-Resilience-Navigator/1.0',
+        'Accept': 'image/png,image/jpeg,image/*',
+        'Referer': 'https://grassland-resilience-rao56wzns-fathfuls-projects.vercel.app/'
+      },
+      timeout: 10000
     });
 
     // Check if the request was successful
@@ -100,10 +103,18 @@ export default async function handler(req, res) {
     const imageBuffer = await response.buffer();
     const contentType = response.headers.get('content-type') || 'image/png';
 
+    // Debug: Log tile info
+    console.log(`Tile fetched: ${zoom}/${col}/${row}, Size: ${imageBuffer.length} bytes, Type: ${contentType}`);
+
+    // Check if it's a valid image (not an error response)
+    if (imageBuffer.length < 100) {
+      console.warn('Suspiciously small tile response, may be an error');
+    }
+
     // Set appropriate headers
     res.setHeader('Content-Type', contentType);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour only
 
     // Return the tile image
     return res.status(200).send(imageBuffer);

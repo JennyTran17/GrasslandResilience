@@ -59,6 +59,12 @@ export default async function handler(req, res) {
       }
     };
 
+    // Set anti-caching headers to force re-fetch of the tile URL on every request
+    // This is crucial because the GEE token embedded in the tile URL is temporary.
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
