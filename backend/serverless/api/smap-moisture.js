@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         type: 'soil-moisture',
         description: 'ERA5 Soil Moisture (Top Layer 0-7cm)',
         // Tile URL for map visualization
-        tileUrl: 'https://grassland-resilience-2tkqy7x4c-fathfuls-projects.vercel.app/api/soil-moisture-tiles?z={z}&x={x}&y={y}',
+        tileUrl: 'https://grassland-resilience.vercel.app/api/soil-moisture-tiles?z={z}&x={x}&y={y}',
         dataFormat: 'XYZ Tiles',
         visualization: {
           min: 0.0,
