@@ -21,16 +21,16 @@ export default async function handler(req, res) {
     const response = {
       success: true,
       data: {
-        type: 'smap-soil-moisture',
-        description: 'SMAP Level 3 Daily Composite - Soil Moisture',
-        // For MVP, we provide the SMAP WMS endpoint
-        wmsUrl: 'https://n5eil01u.ecs.nsidc.org/SMAP',
-        dataFormat: 'WMS',
+        type: 'soil-moisture',
+        description: 'ERA5 Soil Moisture (Top Layer 0-7cm)',
+        // Tile URL for map visualization
+        tileUrl: 'https://grassland-resilience-2tkqy7x4c-fathfuls-projects.vercel.app/api/soil-moisture-tiles?z={z}&x={x}&y={y}',
+        dataFormat: 'XYZ Tiles',
         visualization: {
-          min: 0.02,
+          min: 0.0,
           max: 0.5,
-          palette: ['brown', 'yellow', 'lightblue', 'blue', 'darkblue'],
-          units: 'cm³/cm³'
+          palette: ['8B4513', 'D2691E', 'F4A460', 'ADD8E6', '4682B4', '000080'],
+          units: 'm³/m³'
         },
         legend: {
           'Brown': 'Very dry soil (< 0.1)',
@@ -40,13 +40,14 @@ export default async function handler(req, res) {
           'Dark Blue': 'Very moist soil (> 0.4)'
         },
         metadata: {
-          source: 'NASA SMAP L3',
-          instrument: 'SMAP L-Band Radiometer',
-          resolution: '9km',
+          source: 'ECMWF ERA5 Daily',
+          dataset: 'volumetric_soil_water_layer_1',
+          resolution: '~11km',
           temporalResolution: 'Daily',
-          region: 'Ireland'
+          region: 'Ireland',
+          depth: '0-7cm (top soil layer)'
         },
-        note: 'SMAP data validates NDVI stress zones - low moisture confirms drought stress'
+        note: 'Soil moisture validates NDVI stress zones - low moisture confirms drought stress'
       }
     };
 
