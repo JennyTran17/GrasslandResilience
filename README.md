@@ -1,96 +1,125 @@
-🌍 Grassland Resilience Navigator - Backend
+🌍 Grassland Resilience Navigator
 
 ## What We Built
 
-A NASA satellite data API that monitors grassland health across Ireland using:
-- *NDVI Anomaly* - Detects vegetation stress (red = drought, blue = healthy)
-- *Soil Moisture* - Validates stress with water availability
-- *Active Fires* - Near real-time fire detection
+A complete web application that monitors grassland health across Ireland using NASA satellite data:
+- **Frontend**: Interactive map with layer controls, field management, and user authentication
+- **Backend**: NASA satellite data API with real-time processing
+- **Data Sources**: NDVI Anomaly, Soil Moisture, Active Fires, Risk Assessment
 
 ---
 
-## 🌐 Live API Endpoints
+## 🌐 Live Application
 
-*Base URL:* https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app
+**Frontend**: Interactive web application with map interface
+**Backend API Base URL**: https://grassland-resilience.vercel.app
 
-### 1. Health Check
+### Available API Endpoints
 
-GET https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/health
+#### 1. Health Check
+GET https://grassland-resilience.vercel.app/api/health
 
-[🔗 Test it live](https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/health)
+#### 2. NDVI Anomaly (Vegetation Stress)
+GET https://grassland-resilience.vercel.app/api/ndvi-anomaly
+Returns tile URL for vegetation stress mapping
 
-### 2. NDVI Anomaly (Vegetation Stress Map)
+#### 3. SMAP Soil Moisture  
+GET https://grassland-resilience.vercel.app/api/smap-moisture
+Returns soil moisture visualization data
 
-GET https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/ndvi-anomaly
+#### 4. FIRMS Active Fires
+GET https://grassland-resilience.vercel.app/api/firms-fires
+Returns active fire detection data
 
-[🔗 Test it live](https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/ndvi-anomaly)
+#### 5. Risk Assessment
+POST https://grassland-resilience.vercel.app/api/risk-score
+Calculates resilience risk score for coordinates
 
-Returns tile URL for mapping + legend
-
-### 3. SMAP Soil Moisture
-
-GET https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/smap-moisture
-
-[🔗 Test it live](https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/smap-moisture)
-
-Returns soil moisture visualization parameters
-
-### 4. FIRMS Active Fires
-
-GET https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/firms-fires
-
-[🔗 Test it live](https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/firms-fires)
-
-Returns fire detection data structure
+#### 6. Temporal Data
+GET https://grassland-resilience.vercel.app/api/temporal-data
+Returns time series data for location analysis
 
 ---
 
-## 💻 Quick Setup
+## 💻 Development Setup
 
-### 1. Install Dependencies
-bash
+### Frontend Setup
+```bash
+cd grassland-navigator
+npm install
+npm run dev
+```
+Access at: http://localhost:3000
+
+### Backend Setup
+```bash
 cd backend
 npm install
+node serverless/dev-server.js
+```
+API at: http://localhost:3000/api/
 
+### Environment Variables
+Create `.env.local` in frontend and `.env` in backend with:
+- Firebase configuration
+- NASA Earthdata credentials
+- Google Earth Engine service account
 
-### 2. Configure Credentials
-Edit .env file with your NASA Earthdata and GEE credentials.
+### Deploy
+```bash
+# Frontend
+cd grassland-navigator && vercel --prod
 
-### 3. Run Locally
-bash
-vercel dev
-
-Test at: http://localhost:3000/api/ndvi-anomaly
-
-### 4. Deploy
-bash
-vercel --prod
+# Backend  
+cd backend && vercel --prod
+```
 
 
 ---
 
 ## 📂 Project Structure
 
-backend/
-├── serverless/api/
-│   ├── ndvi-anomaly.js    # Vegetation stress
-│   ├── smap-moisture.js   # Soil moisture
-│   └── firms-fires.js     # Active fires
-├── gee-scripts/           # Google Earth Engine scripts
-├── .env                   # Your credentials
-└── vercel.json           # Deployment config
+```
+GrasslandResilience/
+├── grassland-navigator/          # Frontend (Next.js)
+│   ├── components/              # React components
+│   │   ├── BaseMapInner.jsx    # Main map component
+│   │   ├── LayerControls.jsx   # Layer toggle controls
+│   │   ├── TemporalModal.jsx   # Time series charts
+│   │   └── FieldList.jsx       # Saved fields management
+│   ├── hooks/                  # Custom React hooks
+│   ├── lib/                    # API utilities & Firebase
+│   └── pages/                  # Next.js pages
+├── backend/                     # Backend API
+│   ├── serverless/api/         # Vercel serverless functions
+│   │   ├── ndvi-anomaly.js     # Vegetation stress
+│   │   ├── smap-moisture.js    # Soil moisture
+│   │   ├── firms-fires.js      # Active fires
+│   │   ├── risk-score.js       # Risk assessment
+│   │   └── temporal-data.js    # Time series data
+│   ├── gee-scripts/            # Google Earth Engine scripts
+│   └── vercel.json             # Deployment config
+└── README.md
+```
 
 
 ---
 
-## 🔌 Frontend Integration
-javascript
-// Fetch NDVI tiles
-const response = await fetch('https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/ndvi-anomaly');
-const { data } = await response.json();
+## 🎯 Key Features
 
-// Add to Leaflet map
-L.tileLayer(data.tileUrl, { opacity: 0.7 }).addTo(map);
+### Frontend Application
+- **Interactive Map**: Leaflet-based map with multiple satellite data layers
+- **Layer Controls**: Toggle NDVI, soil moisture, precipitation, and fire layers
+- **Click Analysis**: Click anywhere to get risk scores and temporal data
+- **Field Management**: Save and manage field locations with Firebase
+- **User Authentication**: Firebase Auth for user accounts
+- **Responsive Design**: Works on desktop and mobile devices
+
+### Backend API
+- **Real-time Data**: NASA satellite data processing via Google Earth Engine
+- **Risk Assessment**: AI-powered resilience scoring algorithm
+- **Temporal Analysis**: Historical trend analysis for clicked locations
+- **CORS Enabled**: Ready for frontend integration
 
 
 ---
@@ -106,10 +135,21 @@ All endpoints return JSON with:
 
 ## 🛠️ Tech Stack
 
-- *Data:* NASA VIIRS, SMAP, FIRMS
-- *Processing:* Google Earth Engine (433 images, 2015-2024)
-- *API:* Vercel Serverless Functions
-- *Format:* REST JSON + WMS/WMTS tiles
+### Frontend
+- **Framework**: Next.js 14 with React
+- **Mapping**: Leaflet + React-Leaflet
+- **Charts**: Chart.js for temporal visualizations
+- **Styling**: Tailwind CSS
+- **Authentication**: Firebase Auth
+- **Database**: Firestore for field management
+- **Deployment**: Vercel
+
+### Backend
+- **Runtime**: Node.js serverless functions
+- **Data Sources**: NASA VIIRS, SMAP, FIRMS
+- **Processing**: Google Earth Engine (433 images, 2015-2024)
+- **API**: Vercel Serverless Functions
+- **Format**: REST JSON + WMS/WMTS tiles
 
 ---
 

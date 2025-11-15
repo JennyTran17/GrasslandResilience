@@ -149,12 +149,14 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
   const { userId } = useAuth(); // ✅ FIX: now defined
   const [ndvi, setNdvi] = useState(null);
   const [smap, setSmap] = useState(null);
+  const [precipitation, setPrecipitation] = useState(null);
   const [fires, setFires] = useState([]);
   const [mapInstance, setMapInstance] = useState(null);
   const [latestScore, setLatestScore] = useState(null);
   const [dataStatus, setDataStatus] = useState({
     ndvi: false,
     smap: false,
+    precipitation: false,
     fires: false,
   });
 
@@ -181,6 +183,15 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
           setSmap(smapJson.data);
           setDataStatus((p) => ({ ...p, smap: true }));
           console.log('✅ SMAP Tile URL:', smapJson.data.tileUrl);
+        }
+
+        const precipRes = await fetch(`${BASE_URL}/api/precipitation`);
+        const precipJson = await precipRes.json();
+        console.log('🌧️ Precipitation Response:', precipJson);
+        if (precipJson?.success && precipJson.data) {
+          setPrecipitation(precipJson.data);
+          setDataStatus((p) => ({ ...p, precipitation: true }));
+          console.log('✅ Precipitation Tile URL:', precipJson.data.tileUrl);
         }
 
         const firesRes = await fetch(`${BASE_URL}/api/firms-fires`);
@@ -261,11 +272,15 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
         </div>
       )}
 
-      {/* Precipitation Layer - No tile service available */}
-      {layerStates?.precipitation?.visible && (
-        <div className="absolute top-44 left-4 z-[1000] bg-blue-100 border border-blue-400 text-blue-800 px-3 py-2 rounded text-sm">
-          🌧️ Precipitation: Data available via temporal analysis (click map for time series)
-        </div>
+      {/* Precipitation Layer - Real Tile Data */}
+      {precipitation?.tileUrl && layerStates?.precipitation?.visible && (
+        <TileLayer
+          key={`precipitation-${layerStates.precipitation.opacity}`}
+          url={precipitation.tileUrl}
+          attribution="Precipitation (GPM IMERG)"
+          opacity={layerStates.precipitation.opacity}
+          maxZoom={15}
+        />
       )}
 
       {/* FIRMS Active Fires - Real Backend Data */}
