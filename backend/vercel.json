@@ -32,6 +32,10 @@
       "dest": "/serverless/api/smap-moisture.js"
     },
     {
+      "src": "/api/precipitation",
+      "dest": "/serverless/api/precipitation.js"
+    },
+    {
       "src": "/api/firms-fires",
       "dest": "/serverless/api/firms-fires.js"
     },
