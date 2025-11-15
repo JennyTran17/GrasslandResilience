@@ -6,7 +6,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ResilienceGauge from "./ResilienceGauge";
 
-const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience.vercel.app";
 
 // Dummy data for demonstration
 const DUMMY_DATA = {

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience.vercel.app";
 
 export default function Header() {
   const [apiStatus, setApiStatus] = useState({ status: 'checking', timestamp: null });
@@ -11,9 +11,9 @@ export default function Header() {
       try {
         const res = await fetch(`${BASE_URL}/api/health`);
         const data = await res.json();
-        setApiStatus({ 
-          status: data.status || 'unknown', 
-          timestamp: data.timestamp 
+        setApiStatus({
+          status: data.status || 'unknown',
+          timestamp: data.timestamp
         });
       } catch (err) {
         setApiStatus({ status: 'offline', timestamp: null });
@@ -33,24 +33,24 @@ export default function Header() {
           <div className="text-xs text-slate-400 font-medium">NASA Satellite Data • Ireland Grassland Monitoring</div>
         </div>
       </div>
-      
+
       {/* Real-time Status */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2 text-xs">
           <div className={`w-2 h-2 rounded-full ${
-            apiStatus.status === 'healthy' ? 'bg-green-400 animate-pulse' : 
-            apiStatus.status === 'checking' ? 'bg-yellow-400 animate-pulse' : 
+            apiStatus.status === 'healthy' ? 'bg-green-400 animate-pulse' :
+            apiStatus.status === 'checking' ? 'bg-yellow-400 animate-pulse' :
             'bg-red-400'
           }`}></div>
           <span className="text-slate-300">
             API: <span className="font-medium capitalize">{apiStatus.status}</span>
           </span>
         </div>
-        
+
         <nav className="flex items-center space-x-1">
-          <a 
-            href="https://grassland-resilience-bhrhb4t8i-fathfuls-projects.vercel.app/api/health" 
-            target="_blank" 
+          <a
+            href="https://grassland-resilience.vercel.app/api/health"
+            target="_blank"
             className="text-slate-300 hover:text-white hover:bg-slate-800 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
           >
             API Status

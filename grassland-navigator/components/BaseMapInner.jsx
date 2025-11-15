@@ -17,8 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/lib/firebase"; // ✅ Make sure this path is correct
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
-const BASE_URL =
-  "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience.vercel.app";
 
 function ClickHandler({ userId, onScoreUpdate }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -69,8 +68,8 @@ function ClickHandler({ userId, onScoreUpdate }) {
       return;
     }
 
-    const coords = temporalData?.location ? 
-      [temporalData.location.lng, temporalData.location.lat] : 
+    const coords = temporalData?.location ?
+      [temporalData.location.lng, temporalData.location.lat] :
       [riskResult?.location?.lng || -8.0, riskResult?.location?.lat || 53.3];
 
     const geometry = {
@@ -244,11 +243,15 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates }, ref) {
               />
             )}
 
-      {/* SMAP Soil Moisture Layer - No tile service available */}
-      {layerStates?.soilMoisture?.visible && (
-        <div className="absolute top-20 left-4 z-[1000] bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-2 rounded text-sm">
-          💧 SMAP Soil Moisture: Data available via API but no tile visualization yet
-        </div>
+      {/* SMAP Soil Moisture Layer - Real Tile Data */}
+      {smap?.tileUrl && layerStates?.soilMoisture?.visible && (
+        <TileLayer
+          key={`smap-${layerStates.soilMoisture.opacity}`}
+          url={smap.tileUrl}
+          attribution="Soil Moisture (ERA5)"
+          opacity={layerStates.soilMoisture.opacity}
+          maxZoom={15}
+        />
       )}
 
       {/* Risk Assessment Layer - No tile service available */}
