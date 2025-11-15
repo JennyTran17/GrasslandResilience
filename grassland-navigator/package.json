@@ -9,16 +9,19 @@
   },
   "dependencies": {
     "@google/earthengine": "^1.7.0",
+    "@turf/turf": "^7.2.0",
     "chart.js": "^4.5.1",
     "firebase": "^12.5.0",
     "leaflet": "^1.9.4",
+    "leaflet.pm": "^2.2.0",
     "next": "15.5.6",
     "next-auth": "^4.24.11",
     "postcss": "^8.5.6",
     "react": "19.1.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "19.1.0",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.15",

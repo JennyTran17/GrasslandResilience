@@ -1,5 +1,5 @@
 // /lib/api.js
-const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience.vercel.app";
 
 export const endpoints = {
   fires: `${BASE_URL}/api/firms-fires`,
@@ -31,7 +31,7 @@ export async function getTemporal(lat, lng) {
 }
 
 export async function postRiskScore(payload) {
-  const res = await fetch(`${BASE_URL}/api/risk-score`, {
+  const res = await fetch(`${BASE_URL}/api/risk-score?lat={lat}&lng={lng}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
