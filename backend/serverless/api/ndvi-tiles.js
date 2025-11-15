@@ -135,12 +135,12 @@ export default async function handler(req, res) {
  * FALLBACK: If automatic generation fails, use pre-generated Map ID
  */
 async function getOrGenerateMapId() {
-  // CURRENT MAP ID (generated 2024-11-13 in GEE Code Editor, valid for ~7 days)
+  // CURRENT MAP ID (generated 2024-11-15 in GEE Code Editor, valid for ~7 days)
   // Project: noble-anvil-476021-m6
   // Regenerate using: backend/scripts/generate-gee-map-id.js
-  const MAP_ID = '00b06b56a167f30a90043cf5c03575c0-9bd1371ca32cb610d0bd3050c2940ab7';
+  const MAP_ID = '00b06b56a167f30a90043cf5c03575c0-c764c30195749d38665c9da1cc9b116b';
 
-  console.log('[NDVI Tiles] Using Map ID from Code Editor (generated 2024-11-13)');
+  console.log('[NDVI Tiles] Using Map ID from Code Editor (generated 2024-11-15)');
   return MAP_ID;
 
   /* AUTOMATIC GENERATION DISABLED - GEE auth times out in serverless
