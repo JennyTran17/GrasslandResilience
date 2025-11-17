@@ -1,5 +1,5 @@
 // /lib/api.js
-const BASE_URL = "https://grassland-resilience-n2m7mwu92-fathfuls-projects.vercel.app";
+const BASE_URL = "https://grassland-resilience.vercel.app";
 
 export const endpoints = {
   fires: `${BASE_URL}/api/firms-fires`,
@@ -31,11 +31,10 @@ export async function getTemporal(lat, lng) {
 }
 
 export async function postRiskScore(payload) {
-  const res = await fetch(`${BASE_URL}/api/risk-score`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const params = typeof payload === 'object' && payload.lat !== undefined ? 
+    payload : { lat: arguments[0], lng: arguments[1] };
+  
+  const res = await fetch(`${BASE_URL}/api/risk-score?lat=${params.lat}&lng=${params.lng}`);
   if (!res.ok) throw new Error("Risk score fetch failed");
   return res.json();
 }

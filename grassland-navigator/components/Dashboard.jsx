@@ -2,39 +2,16 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import useSavedFields from "@/hooks/useSavedFields";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ResilienceGauge from "./ResilienceGauge";
+import ScoreVisualizer from "./ScoreVisualizer";
+import ActionableAdvice from "./ActionableAdvice";
 
 const BASE_URL = "https://grassland-resilience.vercel.app";
 
-// Dummy data for demonstration
-const DUMMY_DATA = {
-  resilience: {
-    overall: 72,
-    vegetation: 68,
-    soil: 81,
-    climate: 65
-  },
-  metrics: {
-    ndvi: { value: 0.74, change: +0.12, status: "improving" },
-    moisture: { value: 0.42, change: -0.08, status: "declining" },
-    temperature: { value: 18.5, change: +2.1, status: "warning" },
-    precipitation: { value: 85, change: -15, status: "declining" }
-  },
-  alerts: [
-    { id: 1, type: "warning", message: "Soil moisture below seasonal average", region: "Cork" },
-    { id: 2, type: "info", message: "NDVI showing recovery in Galway region", region: "Galway" },
-    { id: 3, type: "critical", message: "Fire risk elevated in Dublin area", region: "Dublin" }
-  ],
-  recommendations: [
-    "Consider irrigation in Cork region due to low soil moisture",
-    "Monitor fire conditions in Dublin area closely",
-    "Vegetation recovery in Galway shows positive trends"
-  ]
-};
-
-export default function Dashboard({ isCollapsed, onToggleCollapse }) {
+export default function Dashboard({ isCollapsed, onToggleCollapse, latestRiskAssessment }) {
+  console.log('Dashboard received latestRiskAssessment:', JSON.stringify(latestRiskAssessment, null, 2));
   const [activeTab, setActiveTab] = useState("overview");
   const [data, setData] = useState({ ndvi: null, smap: null, fires: null, health: null });
   const [fieldData, setFieldData] = useState({});
@@ -136,6 +113,72 @@ export default function Dashboard({ isCollapsed, onToggleCollapse }) {
     </div>
   );
 
+  const FieldItem = ({ field, fieldData, userId }) => {
+    const [editing, setEditing] = useState(false);
+    const [newName, setNewName] = useState(field.name);
+
+    const handleRename = async () => {
+      try {
+        await updateDoc(doc(db, `users/${userId}/fields`, field.id), { name: newName });
+        setEditing(false);
+      } catch (err) {
+        console.error('Rename error:', err);
+      }
+    };
+
+    const handleDelete = async () => {
+      if (confirm(`Delete field "${field.name}"?`)) {
+        try {
+          await deleteDoc(doc(db, `users/${userId}/fields`, field.id));
+        } catch (err) {
+          console.error('Delete error:', err);
+        }
+      }
+    };
+
+    return (
+      <div className="text-xs p-2 bg-tech-50 rounded">
+        <div className="flex items-center justify-between">
+          {editing ? (
+            <input
+              className="text-xs p-1 border rounded flex-1 mr-2"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              autoFocus
+            />
+          ) : (
+            <div className="font-medium flex-1">{field.name}</div>
+          )}
+          <div className="flex gap-1">
+            {editing ? (
+              <>
+                <button onClick={handleRename} className="text-green-600 hover:bg-green-100 p-1 rounded">✓</button>
+                <button onClick={() => setEditing(false)} className="text-gray-600 hover:bg-gray-100 p-1 rounded">×</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setEditing(true)} className="text-blue-600 hover:bg-blue-100 p-1 rounded">✏️</button>
+                <button onClick={handleDelete} className="text-red-600 hover:bg-red-100 p-1 rounded">🗑️</button>
+              </>
+            )}
+          </div>
+        </div>
+        {fieldData?.risk && (
+          <div className={`inline-block px-2 py-1 rounded text-xs mt-1 ${
+            Number(fieldData.risk.riskScore?.score || fieldData.risk.riskScore || fieldData.risk.score || 3) <= 2 ? 'bg-green-100 text-green-800' :
+            Number(fieldData.risk.riskScore?.score || fieldData.risk.riskScore || fieldData.risk.score || 3) <= 3 ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            Risk: {typeof (fieldData.risk.riskScore?.score || fieldData.risk.riskScore || fieldData.risk.score) === 'number' 
+              ? (fieldData.risk.riskScore?.score || fieldData.risk.riskScore || fieldData.risk.score).toFixed(1)
+              : 'N/A'}/5
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`bg-tech-50/95 backdrop-blur-md border-l border-tech-200 transition-all duration-300 ${
       isCollapsed ? "w-12" : "w-96"
@@ -189,6 +232,12 @@ export default function Dashboard({ isCollapsed, onToggleCollapse }) {
                 <div className="bg-white/90 backdrop-blur-sm border border-tech-200 rounded-lg p-6">
                   <div className="text-center">
                     <ResilienceGauge score={(() => {
+                      // Use latest risk assessment if available
+                      if (latestRiskAssessment?.riskScore || latestRiskAssessment?.score) {
+                        const score = Number(latestRiskAssessment.riskScore || latestRiskAssessment.score);
+                        return Math.round(Math.max(0, Math.min(100, (5 - score) * 20)));
+                      }
+                      // Use field data average if available
                       if (fields?.length > 0 && Object.keys(fieldData).length > 0) {
                         const validRisks = Object.values(fieldData)
                           .map(f => Number(f.risk?.riskScore || f.risk?.score || 3))
@@ -198,19 +247,26 @@ export default function Dashboard({ isCollapsed, onToggleCollapse }) {
                           return Math.round(Math.max(0, Math.min(100, avgRisk)));
                         }
                       }
+                      // Fallback based on real data availability
                       return data.ndvi ? 75 : 50;
                     })()} />
                     <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                       <div>
-                        <div className="text-lg font-bold text-grass-600">{data.ndvi ? 75 : 45}</div>
+                        <div className="text-lg font-bold text-grass-600">
+                          {data.ndvi ? (data.ndvi.metadata?.currentAnomaly > 0 ? 75 : 65) : 45}
+                        </div>
                         <div className="text-xs text-tech-500">Vegetation</div>
                       </div>
                       <div>
-                        <div className="text-lg font-bold text-water-600">{data.smap ? 70 : 40}</div>
+                        <div className="text-lg font-bold text-water-600">
+                          {data.smap ? (data.smap.metadata?.soilMoisture ? 70 : 60) : 40}
+                        </div>
                         <div className="text-xs text-tech-500">Soil</div>
                       </div>
                       <div>
-                        <div className="text-lg font-bold text-stress-600">{data.fires?.fires?.features?.length === 0 ? 85 : 60}</div>
+                        <div className="text-lg font-bold text-stress-600">
+                          {data.fires?.fires?.features?.length === 0 ? 85 : Math.max(30, 85 - (data.fires?.fires?.features?.length || 0) * 5)}
+                        </div>
                         <div className="text-xs text-tech-500">Climate</div>
                       </div>
                     </div>
@@ -221,10 +277,10 @@ export default function Dashboard({ isCollapsed, onToggleCollapse }) {
                 <div className="grid grid-cols-2 gap-3">
                   <MetricCard
                     title="NDVI"
-                    value={data.ndvi ? "Active" : "N/A"}
-                    unit=""
-                    change={data.ndvi ? "+354" : "0"}
-                    status={data.ndvi ? "improving" : "declining"}
+                    value={data.ndvi ? (data.ndvi.metadata?.currentAnomaly || "Active") : "N/A"}
+                    unit={data.ndvi?.metadata?.currentAnomaly ? "" : ""}
+                    change={data.ndvi?.metadata?.currentAnomaly || (data.ndvi ? "+354" : "0")}
+                    status={data.ndvi ? (data.ndvi.metadata?.currentAnomaly > 0 ? "improving" : "stable") : "declining"}
                     icon="🌱"
                   />
                   <MetricCard
@@ -256,68 +312,42 @@ export default function Dashboard({ isCollapsed, onToggleCollapse }) {
                       {fields.slice(0, 3).map(f => {
                         const fData = fieldData[f.id];
                         return (
-                          <div key={f.id} className="text-xs p-2 bg-tech-50 rounded">
-                            <div className="font-medium">{f.name}</div>
-                            {fData?.risk && (
-                              <div className={`inline-block px-2 py-1 rounded text-xs mt-1 ${
-                                Number(fData.risk.riskScore || fData.risk.score || 3) <= 2 ? 'bg-green-100 text-green-800' :
-                                Number(fData.risk.riskScore || fData.risk.score || 3) <= 3 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                Risk: {String(fData.risk.riskScore || fData.risk.score || 'N/A')}/5
-                              </div>
-                            )}
-                          </div>
+                          <FieldItem key={f.id} field={f} fieldData={fData} userId={userId} />
                         );
                       })}
                       {fields.length > 3 && (
                         <div className="text-xs text-tech-500">+{fields.length - 3} more fields</div>
                       )}
                     </div>
+                    <div className="mt-3 pt-2 border-t border-tech-200 text-xs text-tech-500">
+                      User ID: {userId}
+                    </div>
                   </div>
                 )}
 
-                {/* Test Button */}
-                <button
-                  onClick={async () => {
-                    if (!userId) return alert("Not signed in");
-                    await addDoc(collection(db, `users/${userId}/fields`), {
-                      name: "Test Field",
-                      geometry: { coordinates: [-8.0, 53.3] },
-                      createdAt: new Date(),
-                    });
-                  }}
-                  className="w-full bg-emerald-600 text-white px-3 py-2 rounded text-sm hover:bg-emerald-700 transition-colors"
-                >
-                  ➕ Add Test Field
-                </button>
 
-                {/* AI Recommendations */}
-                <div className="bg-white/90 backdrop-blur-sm border border-tech-200 rounded-lg p-4">
-                  <h3 className="text-sm font-bold text-tech-800 mb-3">AI Recommendations</h3>
-                  <div className="space-y-2">
-                    {fields?.length > 0 ? (
-                      fields.map(f => {
-                        const fData = fieldData[f.id];
-                        const advice = fData?.risk ? String(fData.risk.advice || fData.risk.recommendation || '') : '';
-                        return advice ? (
-                          <div key={f.id} className="text-xs text-tech-700 p-2 bg-tech-50 rounded border-l-2 border-grass-400">
-                            <span className="font-medium">{f.name}:</span> {advice}
-                          </div>
-                        ) : null;
-                      })
-                    ) : (
-                      <div className="text-xs text-tech-500 p-2 bg-tech-50 rounded">
-                        Add fields to get personalized recommendations
-                      </div>
-                    )}
-                  </div>
-                </div>
               </>
             )}
 
             {activeTab === "metrics" && (
               <div className="space-y-4">
+                {/* Score Visualizer */}
+                <div className="bg-white/90 backdrop-blur-sm border border-tech-200 rounded-lg p-4">
+                  <h3 className="text-sm font-bold text-tech-800 mb-3">📊 Risk Score</h3>
+                  {latestRiskAssessment ? (
+                    <ScoreVisualizer
+                      score={latestRiskAssessment.riskScore || latestRiskAssessment.score}
+                      location={latestRiskAssessment.location}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-tech-500">
+                      <div className="text-2xl mb-2">🎯</div>
+                      <div className="text-sm font-medium">No assessment data</div>
+                      <div className="text-xs">Click on the map to get risk score</div>
+                    </div>
+                  )}
+                </div>
+
                 {/* NASA Data Details */}
                 <div className="bg-white/90 backdrop-blur-sm border border-tech-200 rounded-lg p-4">
                   <h3 className="text-sm font-bold text-emerald-700 mb-2">🌾 NDVI Anomaly</h3>
@@ -363,19 +393,28 @@ export default function Dashboard({ isCollapsed, onToggleCollapse }) {
 
             {activeTab === "alerts" && (
               <div className="space-y-3">
-                {/* Risk Assessment */}
+                {/* Actionable Advice */}
                 <div className="bg-white/90 backdrop-blur-sm border border-tech-200 rounded-lg p-4">
-                  <h3 className="text-sm font-bold text-orange-700 mb-2">📊 Risk Assessment</h3>
-                  <div className="text-xs text-tech-600">
-                    Click on the map to analyze grassland resilience risk for any location.
-                  </div>
+                  {latestRiskAssessment ? (
+                    <ActionableAdvice 
+                      advice={latestRiskAssessment.advice} 
+                      score={latestRiskAssessment.riskScore || latestRiskAssessment.score}
+                      location={latestRiskAssessment.location}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-tech-500">
+                      <div className="text-2xl mb-2">🗺️</div>
+                      <div className="text-sm font-medium">Click on the map</div>
+                      <div className="text-xs">Get real-time risk assessment from NASA data</div>
+                    </div>
+                  )}
                 </div>
 
-                {DUMMY_DATA.alerts.map((alert) => (
-                  <AlertItem key={alert.id} alert={alert} />
-                ))}
+
               </div>
             )}
+
+
           </div>
         </>
       )}

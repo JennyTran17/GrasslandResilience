@@ -7,8 +7,8 @@ const BaseMapInner = dynamic(() => import("./BaseMapInner"), {
   loading: () => <p>Loading interactive map…</p>,
 });
 
-const MapWrapper = forwardRef(function MapWrapper({ layerStates, ...props }, ref) {
-  return <BaseMapInner ref={ref} layerStates={layerStates} {...props} />;
+const MapWrapper = forwardRef(function MapWrapper({ layerStates, onRiskAssessment, ...props }, ref) {
+  return <BaseMapInner ref={ref} layerStates={layerStates} onRiskAssessment={onRiskAssessment} {...props} />;
 });
 
 export default MapWrapper;
