@@ -25,9 +25,26 @@ export async function getFires() {
   return res.json();
 }
 export async function getTemporal(lat, lng) {
-  const res = await fetch(`${BASE_URL}/api/temporal-data?lat=${lat}&lng=${lng}`);
-  if (!res.ok) throw new Error("Temporal data fetch failed");
-  return res.json();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    
+    const res = await fetch(`${BASE_URL}/api/temporal-data?lat=${lat}&lng=${lng}`, {
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) {
+      console.warn(`Temporal data API returned ${res.status}: ${res.statusText}`);
+      return { success: false, data: null };
+    }
+    
+    return res.json();
+  } catch (err) {
+    console.warn('Temporal data fetch failed:', err.message);
+    return { success: false, data: null };
+  }
 }
 
 export async function postRiskScore(payload) {
