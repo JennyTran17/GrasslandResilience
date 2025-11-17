@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import ResilienceGauge from "./ResilienceGauge";
 import ScoreVisualizer from "./ScoreVisualizer";
 import ActionableAdvice from "./ActionableAdvice";
+import TemporalModal from "./TemporalModal";
 
 const BASE_URL = "https://grassland-resilience.vercel.app";
 
@@ -16,6 +17,7 @@ export default function Dashboard({ isCollapsed, onToggleCollapse, latestRiskAss
   const [data, setData] = useState({ ndvi: null, smap: null, fires: null, health: null });
   const [fieldData, setFieldData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [temporalModal, setTemporalModal] = useState({ open: false, data: null });
   const { userId } = useAuth();
   const fields = useSavedFields(userId);
 
@@ -117,6 +119,21 @@ export default function Dashboard({ isCollapsed, onToggleCollapse, latestRiskAss
     const [editing, setEditing] = useState(false);
     const [newName, setNewName] = useState(field.name);
 
+    const showTemporalChart = () => {
+      const [lng, lat] = field.geometry?.coordinates || [-8.0, 53.3];
+      const demoData = {
+        timeSeries: {
+          months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          ndvi: {
+            current: [0.3, 0.35, 0.45, 0.6, 0.7, 0.75, 0.8, 0.78, 0.65, 0.5, 0.4, 0.32],
+            historicalMean: [0.32, 0.38, 0.48, 0.62, 0.72, 0.77, 0.82, 0.8, 0.67, 0.52, 0.42, 0.34]
+          }
+        },
+        interpretation: { trend: `NDVI time series for ${field.name} at ${lat.toFixed(3)}, ${lng.toFixed(3)}. Shows seasonal vegetation patterns with summer peak growth.` }
+      };
+      setTemporalModal({ open: true, data: demoData });
+    };
+
     const handleRename = async () => {
       try {
         await updateDoc(doc(db, `users/${userId}/fields`, field.id), { name: newName });
@@ -158,6 +175,7 @@ export default function Dashboard({ isCollapsed, onToggleCollapse, latestRiskAss
               </>
             ) : (
               <>
+                <button onClick={showTemporalChart} className="text-green-600 hover:bg-green-100 p-1 rounded" title="View Chart">📊</button>
                 <button onClick={() => setEditing(true)} className="text-blue-600 hover:bg-blue-100 p-1 rounded">✏️</button>
                 <button onClick={handleDelete} className="text-red-600 hover:bg-red-100 p-1 rounded">🗑️</button>
               </>
@@ -418,6 +436,12 @@ export default function Dashboard({ isCollapsed, onToggleCollapse, latestRiskAss
           </div>
         </>
       )}
+      
+      <TemporalModal
+        open={temporalModal.open}
+        onClose={() => setTemporalModal({ open: false, data: null })}
+        data={temporalModal.data || {}}
+      />
     </div>
   );
 }

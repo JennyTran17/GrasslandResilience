@@ -107,18 +107,6 @@ function ClickHandler({ userId, onScoreUpdate, onSaveModeChange }) {
         setSaveMode(true);
         setSaveName(`Field ${lat.toFixed(3)}, ${lng.toFixed(3)} - Risk: 3.0/5`);
       }
-
-      // Fetch temporal data (optional)
-      try {
-        const temporal = await getTemporal(lat, lng);
-        if (temporal?.data) {
-          setTemporalData(temporal.data);
-          setModalOpen(true);
-        }
-      } catch (err) {
-        console.error("❌ Temporal fetch error:", err);
-        // Continue without temporal data - don't show modal if temporal data fails
-      }
     },
   });
 

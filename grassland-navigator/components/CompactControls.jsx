@@ -96,15 +96,15 @@ export default function CompactControls({ layerStates, onLayerToggle, onOpacityC
           <span className="text-sm font-medium">Risk</span>
           <span className="text-xs">{expandedPanel === 'risk' ? '−' : '+'}</span>
         </button>
-        
+
         {expandedPanel === 'risk' && (
           <div className="absolute top-12 left-0 bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg shadow-xl p-4 min-w-[280px] z-[1100]">
             <div className="space-y-2">
               {[
-                { level: "Minimal", color: "bg-emerald-500", value: "0.0-0.2", percentage: "15%" },
-                { level: "Moderate", color: "bg-amber-500", value: "0.2-0.5", percentage: "35%" },
-                { level: "Elevated", color: "bg-orange-500", value: "0.5-0.8", percentage: "40%" },
-                { level: "Severe", color: "bg-red-500", value: "0.8-1.0", percentage: "10%" }
+                { level: "Minimal", color: "bg-emerald-500", value: "0.0-2.0"},
+                { level: "Moderate", color: "bg-amber-500", value: "2.0-3.0"},
+                { level: "Elevated", color: "bg-orange-500", value: "3.0-4.0"},
+                { level: "Severe", color: "bg-red-500", value: "4.0-5.0"}
               ].map((risk, index) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50">
                   <div className="flex items-center space-x-3">

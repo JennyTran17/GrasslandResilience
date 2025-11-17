@@ -27,19 +27,16 @@ export default function TemporalModal({ open, onClose, data }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="bg-white rounded-lg p-4 shadow-lg w-[min(800px,95%)] z-10">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-semibold">12-month NDVI Time Series</h3>
-          <button onClick={onClose} className="text-slate-600">✕</button>
-        </div>
-        <div style={{ height: 320 }}>
-          <Line data={chartData} options={options} />
-        </div>
-        <div className="mt-3 text-sm">
-          <strong>Interpretation:</strong> {data?.interpretation?.trend || "No summary available"}
-        </div>
+    <div className="bg-white/90 z-[9999] backdrop-blur-sm border border-tech-200 rounded-lg p-4">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-sm font-bold text-tech-800">📊 NDVI Time Series</h3>
+        <button onClick={onClose} className="text-slate-600 hover:bg-gray-100 p-1 rounded">✕</button>
+      </div>
+      <div style={{ height: 250 }}>
+        <Line data={chartData} options={options} />
+      </div>
+      <div className="mt-2 text-xs text-tech-600">
+        <strong>Analysis:</strong> {data?.interpretation?.trend || "No summary available"}
       </div>
     </div>
   );
