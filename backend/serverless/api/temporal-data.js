@@ -11,7 +11,9 @@
 const { getEE } = require('../../config/gee-auth');
 
 // Fallback to simulated data if GEE fails
-const USE_GEE = process.env.USE_GEE_TEMPORAL !== 'false'; // Enable by default
+// NOTE: GEE temporal queries make 100+ API calls and timeout on Vercel serverless (10s limit)
+// Disabled by default to prevent timeouts
+const USE_GEE = process.env.USE_GEE_TEMPORAL === 'true'; // Disabled by default
 
 export default async function handler(req, res) {
   // CORS headers
