@@ -8,10 +8,10 @@
  * UPDATED: Now uses real Google Earth Engine API for NDVI data
  */
 
-const { getEE } = require('../../config/gee-auth');
-
 // Fallback to simulated data if GEE fails
-const USE_GEE = process.env.USE_GEE_TEMPORAL !== 'false'; // Enable by default
+// NOTE: GEE temporal queries make 100+ API calls and timeout on Vercel serverless (10s limit)
+// Disabled by default to prevent timeouts
+// DO NOT import GEE auth at module level - it causes timeouts
 
 export default async function handler(req, res) {
   // CORS headers
@@ -23,6 +23,8 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     return res.status(200).json({ ok: true });
   }
+
+  console.log('[Temporal] Function invoked');
 
   try {
     // Get coordinates from query params (GET) or body (POST)
@@ -54,11 +56,18 @@ export default async function handler(req, res) {
       });
     }
 
+    console.log(`[Temporal] Starting temporal data fetch for (${lat}, ${lng})`);
+
+    const USE_GEE = process.env.USE_GEE_TEMPORAL === 'true'; // Check at runtime
+    console.log(`[Temporal] USE_GEE = ${USE_GEE}`);
+
     let dataSource = 'simulated';
     let ndviData, soilMoistureData;
 
     // Try to fetch real GEE data
     if (USE_GEE) {
+      // Dynamically import only when needed
+      const { getEE } = require('../../config/gee-auth');
       try {
         console.log(`[Temporal] Fetching real GEE data for (${lat}, ${lng})`);
         const geeData = await fetchGEETemporalData(lat, lng);
@@ -73,9 +82,12 @@ export default async function handler(req, res) {
       }
     } else {
       // Use simulated data
+      console.log(`[Temporal] Using simulated data`);
       const simData = generateSimulatedData(lat, lng);
+      console.log(`[Temporal] Generated simulated data:`, simData);
       ndviData = simData.ndvi;
       soilMoistureData = simData.soilMoisture;
+      console.log(`[Temporal] Assigned data, preparing response`);
     }
 
     const months = [
