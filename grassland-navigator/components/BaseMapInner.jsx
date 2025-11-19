@@ -154,9 +154,27 @@ const BaseMapInner = forwardRef(function BaseMapInner({ layerStates, onRiskAsses
           firesRes.json()
         ]);
 
-        if (ndviJson?.success && ndviJson.data?.tileUrl) setNdvi(ndviJson.data);
-        if (smapJson?.success && smapJson.data) setSmap(smapJson.data);
-        if (precipJson?.success && precipJson.data) setPrecipitation(precipJson.data);
+        console.log('🟢 NDVI Response:', ndviJson);
+        console.log('🔵 SMAP Response:', smapJson);
+        console.log('🌧️ Precipitation Response:', precipJson);
+        console.log('🔥 Fires Response:', firesJson);
+
+        if (ndviJson?.success && ndviJson.data?.tileUrl) {
+          console.log('✅ NDVI Tile URL:', ndviJson.data.tileUrl);
+          setNdvi(ndviJson.data);
+        }
+        if (smapJson?.success && smapJson.data?.tileUrl) {
+          console.log('✅ SMAP Tile URL:', smapJson.data.tileUrl);
+          setSmap(smapJson.data);
+        } else {
+          console.warn('❌ SMAP missing tileUrl:', smapJson);
+        }
+        if (precipJson?.success && precipJson.data?.tileUrl) {
+          console.log('✅ Precipitation Tile URL:', precipJson.data.tileUrl);
+          setPrecipitation(precipJson.data);
+        } else {
+          console.warn('❌ Precipitation missing tileUrl:', precipJson);
+        }
         if (firesJson?.success && firesJson.data) setFires(firesJson.data?.fires?.features || []);
       } catch (err) {
         console.error("Error loading map layers:", err);
