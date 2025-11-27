@@ -1,6 +1,6 @@
 /**
  * Google Earth Engine Code Editor Script
- * Generate Soil Moisture Map ID
+ * Generate Soil Moisture Map ID - CORRECTED VERSION
  *
  * INSTRUCTIONS:
  * 1. Go to: https://code.earthengine.google.com/
@@ -11,26 +11,37 @@
  * 6. Check the Console (right panel) for the Map ID
  * 7. Copy the Map ID that appears in the console
  * 8. Update backend/serverless/api/soil-moisture-tiles.js with the new Map ID
+ *
+ * FIXES APPLIED (2025-11-21):
+ * - Using ERA5-Land dataset (more recent data than ERA5)
+ * - Using 2025 data (not 2023)
+ * - Added .multiply(1.0) for proper image format
+ * - Added .clip(ireland) to bound tiles to Ireland only
+ * - Correct band name: volumetric_soil_water_layer_1
  */
 
 // Define Ireland region
 var ireland = ee.Geometry.Rectangle([-10.5, 51.5, -6.0, 55.5]);
 
-print('Fetching SMAP Soil Moisture data for Ireland...');
+print('Fetching ERA5-Land Soil Moisture data for Ireland...');
+print('Using most recent available data (2025)');
 
-// Get ERA5 Soil Moisture (publicly accessible)
-// ERA5 is a reanalysis dataset that provides global soil moisture estimates
-// This is more reliable than SMAP for public Earth Engine access
-var soilMoisture = ee.ImageCollection('ECMWF/ERA5/DAILY')
+// Get ERA5-Land Soil Moisture - USING 2025 DATA
+// ERA5-Land has more recent data than ERA5
+var soilMoisture = ee.ImageCollection('ECMWF/ERA5_LAND/DAILY_AGGR')
   .filterBounds(ireland)
-  .filterDate('2023-01-01', '2024-01-01')  // Use 2023 data for better availability
+  .filterDate('2025-01-01', '2025-12-31')  // ✅ Use current year data
   .select('volumetric_soil_water_layer_1')  // Top soil layer (0-7cm depth)
-  .mean();
+  .mean()
+  .multiply(1.0)   // ✅ Ensure proper image format
+  .clip(ireland);  // ✅ Clip to Ireland bounds only (prevents white boxes)
 
-print('ERA5 Soil Moisture data fetched. Unit: m³/m³ (volumetric)');
+print('ERA5-Land Soil Moisture data fetched');
+print('Dataset: ECMWF/ERA5_LAND/DAILY_AGGR');
+print('Band: volumetric_soil_water_layer_1');
+print('Unit: m³/m³ (volumetric)');
 
 // Visualization parameters for soil moisture
-// SMAP values range from 0 to 1 (0% to 100% saturation)
 var visParams = {
   min: 0.0,
   max: 0.5,
@@ -50,7 +61,7 @@ var mapId = soilMoisture.getMapId(visParams);
 
 // Print the Map ID to the console
 print('============================================================');
-print('✅ SUCCESS! Soil Moisture Map ID generated:');
+print('✅ SUCCESS! Soil Moisture Map ID generated (CORRECTED):');
 print('============================================================');
 print('');
 print('Map ID: ' + mapId.mapid);
@@ -59,14 +70,23 @@ print('============================================================');
 print('NEXT STEPS:');
 print('1. Copy the Map ID above');
 print('2. Update backend/serverless/api/soil-moisture-tiles.js');
-print('3. Replace PLACEHOLDER_GENERATE_IN_GEE_CODE_EDITOR with this Map ID');
+print('3. Update the MAP_ID constant with this value');
 print('4. This Map ID will be valid for ~7 days');
+print('============================================================');
+print('');
+print('FIXES APPLIED:');
+print('✓ Using ERA5-Land (not ERA5)');
+print('✓ Using 2025 data (not 2023)');
+print('✓ Added .multiply(1.0) for proper format');
+print('✓ Added .clip(ireland) to prevent white boxes');
 print('============================================================');
 
 // Also add the layer to the map for visual confirmation
 Map.centerObject(ireland, 6);
-Map.addLayer(soilMoisture, visParams, 'Soil Moisture');
+Map.addLayer(soilMoisture, visParams, 'Soil Moisture (2025)');
 
 print('');
-print('Map preview added. Check the map to verify the layer looks correct.');
-print('Legend: Brown = Dry, Blue = Wet');
+print('Map preview added. Check the map - you should see:');
+print('✓ Colorized data (brown to blue) over Ireland');
+print('✓ NO white/transparent boxes');
+print('✓ Clear distinction between wet and dry areas');
