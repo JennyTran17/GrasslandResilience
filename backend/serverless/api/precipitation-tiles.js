@@ -114,13 +114,14 @@ export default async function handler(req, res) {
  * TODO: Generate the actual Map ID
  */
 function getMapId() {
-  // Map ID generated 2025-11-21 v2 in GEE Code Editor
+  // Map ID generated 2025-11-21 v3 in GEE Code Editor (CORRECTED)
   // Project: noble-anvil-476021-m6
-  // Dataset: GPM IMERG (precipitationCal)
+  // Dataset: GPM IMERG 2024 (precipitationCal)
+  // Fixes: .clip(ireland), corrected vis range (0.05-0.25 mm/hr)
   // Valid for ~7 days
-  const MAP_ID = 'f25685a294616a549253cb8bbcdbda43-4650b2d2ebb9dfbf061646398168ca9b';
+  const MAP_ID = 'ce42478cfb5853b0aabacb552a488d72-6d92901ad4c40c8e948352e397a41ca2';
 
-  console.log('[Precipitation Tiles] Using Map ID from Code Editor (generated 2025-11-21 v2)');
+  console.log('[Precipitation Tiles] Using Map ID from Code Editor (generated 2025-11-21 v3 - CORRECTED)');
 
   return MAP_ID;
 }
