@@ -114,14 +114,14 @@ export default async function handler(req, res) {
  * TODO: Generate the actual Map ID
  */
 function getMapId() {
-  // Map ID generated 2025-11-21 v3 in GEE Code Editor (CORRECTED)
+  // Map ID generated 2025-11-21 v4 in GEE Code Editor
   // Project: noble-anvil-476021-m6
   // Dataset: ERA5-Land Soil Moisture 2025 (volumetric_soil_water_layer_1)
   // Fixes: Using 2025 data, .clip(ireland), proper visualization
   // Valid for ~7 days
-  const MAP_ID = 'ee413ba1e34542134030ee6008a69585-609e1f375d41b9d3c544fc026ec96280';
+  const MAP_ID = '7cc3f4ae7439f08e0106d8233eb03965-8228e8cf2cb2ad7b274815fc74806054';
 
-  console.log('[Soil Moisture Tiles] Using Map ID from Code Editor (generated 2025-11-21 v3 - CORRECTED)');
+  console.log('[Soil Moisture Tiles] Using Map ID from Code Editor (generated 2025-11-21 v4)');
 
   return MAP_ID;
 }
