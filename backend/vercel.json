@@ -1,0 +1,66 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "serverless/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "serverless/api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/serverless/index.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/serverless/api/health.js"
+    },
+    {
+      "src": "/api/ndvi-anomaly",
+      "dest": "/serverless/api/ndvi-anomaly.js"
+    },
+    {
+      "src": "/api/ndvi-tiles",
+      "dest": "/serverless/api/ndvi-tiles.js"
+    },
+    {
+      "src": "/api/smap-moisture",
+      "dest": "/serverless/api/smap-moisture.js"
+    },
+    {
+      "src": "/api/precipitation",
+      "dest": "/serverless/api/precipitation.js"
+    },
+    {
+      "src": "/api/firms-fires",
+      "dest": "/serverless/api/firms-fires.js"
+    },
+    {
+      "src": "/api/temporal-data",
+      "dest": "/serverless/api/temporal-data.js"
+    },
+    {
+      "src": "/api/risk-score",
+      "dest": "/serverless/api/risk-score.js"
+    },
+    {
+      "src": "/api/actionable-advice",
+      "dest": "/serverless/api/actionable-advice.js"
+    },
+    {
+      "src": "/api/soil-moisture-tiles",
+      "dest": "/serverless/api/soil-moisture-tiles.js"
+    },
+    {
+      "src": "/api/precipitation-tiles",
+      "dest": "/serverless/api/precipitation-tiles.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

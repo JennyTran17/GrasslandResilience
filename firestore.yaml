@@ -1,0 +1,21 @@
+/users/{userId}/fields/{fieldId}
+field doc:
+{
+  id: string, // auto-id or uuid
+  name: string,
+  geometry: { type: "Point", coordinates: [lng, lat] } OR polygon coordinates,
+  createdAt: timestamp,
+  lastAnalyzed: timestamp,
+  latestScore: {
+    score: number, // 1 - 5
+    advice: string,
+    ndvi: number | null,
+    soilMoisture: number | null
+  }
+}
+
+/users/{userId}/history/{historyId}
+{
+  id, createdAt, lat, lng, score, advice, ndviSeries, soilMoistureSeries
+}
+

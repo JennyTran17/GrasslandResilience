@@ -1,0 +1,34 @@
+{
+  "name": "grassland-resilience-navigator-backend",
+  "version": "1.0.0",
+  "description": "Backend services for Grassland Resilience Navigator - NASA Hackathon MVP",
+  "main": "index.js",
+  "scripts": {
+    "test:auth": "node config/test-earthdata-auth.js",
+    "test:gee": "node config/test-gee-auth.js",
+    "generate:apikey": "node config/api-key-generator.js",
+    "build": "echo 'No build needed for serverless functions'",
+    "dev": "node serverless/dev-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nasa",
+    "earthdata",
+    "gee",
+    "ndvi",
+    "grassland",
+    "climate"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/earthengine": "^1.6.15",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
